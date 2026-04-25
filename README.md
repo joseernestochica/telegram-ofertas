@@ -75,6 +75,7 @@ Resumen (detalle en `.env.template`):
 ## Roadmap
 
 - Visión de negocio: `docs/varios/plan-inicial.md`
+- Cuenta Amazon Afiliados (tag, enlaces, capturas): `docs/varios/cuenta-amazon-afiliados.md`
 - Limpieza del repo: `docs/varios/plan-limpieza.md`
 - Implementación técnica (Ganga Bot): `docs/varios/plan-implementacion.md`
 

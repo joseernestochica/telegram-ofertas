@@ -9,6 +9,7 @@
 > Referencias previas: `plan-inicial.md` (visión, modelo de negocio) y `plan-limpieza.md` (base técnica).
 >
 > Convenciones:
+>
 > - Cada **fase** deja el proyecto compilando y arrancable.
 > - Las **acciones manuales** del usuario (registros, claves, cuentas) van marcadas con 🧑‍💻.
 > - Las **acciones automatizables** (código/migraciones/scripts) van marcadas con 🤖.
@@ -18,18 +19,20 @@
 
 ## Índice
 
-| Fase | Objetivo | Estado final |
-|------|----------|--------------|
-| [Fase A](#fase-a--cuentas-y-preparativos-manuales) | Cuentas externas y claves (Amazon Afiliados, Telegram, Keepa) | Todas las credenciales listas en `.env` |
-| [Fase B](#fase-b--modelado-de-datos-deal-category) | Entidades `Category`, `Deal`, `DealEvent` + seed de categorías | Migraciones verdes, endpoints CRUD mínimos |
-| [Fase C](#fase-c--cliente-keepa-y-fetcher-de-ofertas) | Integración con Keepa y detector de chollos | Cron descarga candidatos y persiste `Deal` en `PENDING` |
-| [Fase D](#fase-d--enlaces-de-afiliado-y-formateo-amazon) | Utilidades Amazon (tag, URL, aviso legal) + plantilla `deal.html` | `PublisherService` genera HTML listo |
-| [Fase E](#fase-e--publisher-al-canal--cola-de-publicación) | Envío al canal con `send-message`, throttling, dedupe | Publicación automática programada |
-| [Fase F](#fase-f--comandos-admin-del-bot) | `/stats`, `/pending`, `/publish <id>`, `/skip <id>`, `/pause` | Admin opera desde chat privado |
-| [Fase G](#fase-g--observabilidad-mínima-y-métricas) | Logs estructurados, tabla de `PublishedDeal`, contador clics (opcional) | Panel mínimo de salud |
-| [Fase H](#fase-h--migración-a-pa-api-50) | Cuando haya 3 ventas cualificadas, conectar Amazon PA-API | Fuente oficial + fallback a Keepa |
-| [Fase I](#fase-i--despliegue-hosting-y-ci) | Deploy en hosting barato + webhook productivo + backups | Bot corriendo 24/7 |
-| [Fase J](#fase-j--operación-y-mejoras) | Rutina diaria, A/B de copys, categorías con mejor conversión | Iteración continua |
+
+| Fase                                                       | Objetivo                                                                | Estado final                                            |
+| ---------------------------------------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------- |
+| [Fase A](#fase-a--cuentas-y-preparativos-manuales)         | Cuentas externas y claves (Amazon Afiliados, Telegram, Keepa)           | Todas las credenciales listas en `.env`                 |
+| [Fase B](#fase-b--modelado-de-datos-deal-category)         | Entidades `Category`, `Deal`, `DealEvent` + seed de categorías          | Migraciones verdes, endpoints CRUD mínimos              |
+| [Fase C](#fase-c--cliente-keepa-y-fetcher-de-ofertas)      | Integración con Keepa y detector de chollos                             | Cron descarga candidatos y persiste `Deal` en `PENDING` |
+| [Fase D](#fase-d--enlaces-de-afiliado-y-formateo-amazon)   | Utilidades Amazon (tag, URL, aviso legal) + plantilla `deal.html`       | `PublisherService` genera HTML listo                    |
+| [Fase E](#fase-e--publisher-al-canal--cola-de-publicación) | Envío al canal con `send-message`, throttling, dedupe                   | Publicación automática programada                       |
+| [Fase F](#fase-f--comandos-admin-del-bot)                  | `/stats`, `/pending`, `/publish <id>`, `/skip <id>`, `/pause`           | Admin opera desde chat privado                          |
+| [Fase G](#fase-g--observabilidad-mínima-y-métricas)        | Logs estructurados, tabla de `PublishedDeal`, contador clics (opcional) | Panel mínimo de salud                                   |
+| [Fase H](#fase-h--migración-a-pa-api-50)                   | Cuando haya 3 ventas cualificadas, conectar Amazon PA-API               | Fuente oficial + fallback a Keepa                       |
+| [Fase I](#fase-i--despliegue-hosting-y-ci)                 | Deploy en hosting barato + webhook productivo + backups                 | Bot corriendo 24/7                                      |
+| [Fase J](#fase-j--operación-y-mejoras)                     | Rutina diaria, A/B de copys, categorías con mejor conversión            | Iteración continua                                      |
+
 
 ---
 
@@ -43,12 +46,13 @@
 2. Ir a [afiliados.amazon.es](https://afiliados.amazon.es) y solicitar acceso como **Amazon Associates**.
 3. Declarar el **canal de Telegram** como plataforma de promoción (todavía vacío, no pasa nada).
 4. Rellenar datos fiscales (DNI, IBAN, dirección).
-5. Anotar tu **tag** (ej.: `tucanal-21`) → va a `AMAZON_AFFILIATE_TAG` en `.env`.
-6. ⚠️ Recordar: a partir de la aprobación, cuentan 180 días para lograr **3 ventas cualificadas**; si no, se suspende la cuenta.
+5. Anotar tu **tag** (ID de afiliado) → `AMAZON_AFFILIATE_TAG` en `.env`. Para **Ganga Bot** (Amazon.es): **`gangabot06-21`**. Resumen y captura: [`cuenta-amazon-afiliados.md`](./cuenta-amazon-afiliados.md).
+6. ⚠️ Tras la aprobación aplican **180 días** para **3 ventas cualificadas**; el panel puede indicar revisión del canal/sitio al alcanzarlas. Completa la **información de cobro** cuando Amazon lo solicite.
 
 **Criterios de salida**:
-- [ ] Tag de afiliado activo.
-- [ ] Aviso legal apuntado literal: *"En calidad de Afiliado de Amazon, obtengo ingresos por las compras adscritas."*
+
+- Tag de afiliado activo y documentado (`gangabot06-21`).
+- Aviso legal apuntado literal: *"En calidad de Afiliado de Amazon, obtengo ingresos por las compras adscritas."*
 
 ### A.2 Canal de Telegram + bot 🧑‍💻
 
@@ -60,8 +64,9 @@
 6. Generar un `TELEGRAM_WEBHOOK_SECRET` (hex de 32+ chars) y registrarlo más tarde con `setWebhook`.
 
 **Criterios de salida**:
-- [ ] `.env` con `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHANNEL_ID`, `TELEGRAM_ADMIN_CHAT_ID`, `TELEGRAM_WEBHOOK_SECRET`.
-- [ ] Bot es admin del canal y puede publicar.
+
+- `.env` con `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHANNEL_ID`, `TELEGRAM_ADMIN_CHAT_ID`, `TELEGRAM_WEBHOOK_SECRET`.
+- Bot es admin del canal y puede publicar.
 
 ### A.3 Keepa 🧑‍💻
 
@@ -69,12 +74,13 @@
 2. Contratar el plan **API** (~17€/mes; precio según uso de *tokens*).
 3. Obtener `KEEPA_API_KEY` desde el panel → va a `.env`.
 4. Revisar documentación de endpoints clave que usaremos:
-   - `/deal` (búsqueda de chollos filtrados)
-   - `/product` (detalle de producto por ASIN, si hace falta)
+  - `/deal` (búsqueda de chollos filtrados)
+  - `/product` (detalle de producto por ASIN, si hace falta)
 
 **Criterios de salida**:
-- [ ] `KEEPA_API_KEY` en `.env`.
-- [ ] Prueba manual en Bruno: `GET https://api.keepa.com/token?key={{KEEPA_API_KEY}}` responde con tokens disponibles.
+
+- `KEEPA_API_KEY` en `.env`.
+- Prueba manual en Bruno: `GET https://api.keepa.com/token?key={{KEEPA_API_KEY}}` responde con tokens disponibles.
 
 ### A.4 Repositorio y entorno local 🤖
 
@@ -100,7 +106,7 @@ TELEGRAM_WEBHOOK_SECRET=...
 TELEGRAM_CHANNEL_ID=-100...
 TELEGRAM_ADMIN_CHAT_ID=...
 
-AMAZON_AFFILIATE_TAG=tucanal-21
+AMAZON_AFFILIATE_TAG=gangabot06-21
 AMAZON_MARKETPLACE=www.amazon.es
 
 KEEPA_API_KEY=...
@@ -117,13 +123,13 @@ KEEPA_API_KEY=...
 
 Ubicación sugerida: `src/deal/entities/`, `src/category/entities/`.
 
-- **`Category`**:
+- `**Category`**:
   - `id` (uuid), `name` (único), `slug`, `hashtag` (ej. `#Electronica`), `amazonNodeId?` (nodo de Amazon).
-- **`Deal`** (núcleo):
+- `**Deal**` (núcleo):
   - `id` (uuid), `asin` (único, indexado), `title`, `imageUrl?`, `categoryId` (FK), `currency` (`EUR`), `oldPrice`, `newPrice`, `discountPct` (calculado), `affiliateUrl`, `source` (`keepa` | `manual` | `paapi`), `status` (`PENDING` | `APPROVED` | `PUBLISHED` | `SKIPPED` | `EXPIRED`), `detectedAt`, `publishedAt?`, `externalPayload` (jsonb, respuesta bruta de la fuente).
   - Índices: `(status, detectedAt)`, `(asin)`, `(publishedAt)`.
   - Regla de dedupe: mismo `asin` no se re-publica si fue `PUBLISHED` en los últimos **N días** (configurable, p. ej. 14).
-- **`DealEvent`** (auditoría):
+- `**DealEvent`** (auditoría):
   - `id`, `dealId` (FK), `type` (`detected` | `approved` | `published` | `skipped` | `error`), `metadata` (jsonb), `createdAt`.
 
 ### B.2 Módulos y repositorios 🤖
@@ -147,14 +153,16 @@ Hoy el proyecto usa `synchronize: true`. Recomendado:
 ### B.5 Bruno 🤖
 
 Añadir en `bruno/api/`:
+
 - `categories/list.bru` → `GET /api/categories`
 - `deals/list.bru` → `GET /api/deals?status=PENDING`
 - `deals/get-by-id.bru` → `GET /api/deals/:id`
 
 **Criterios de salida**:
-- [ ] Migración/`synchronize` crea las tres tablas sin errores.
-- [ ] Seed de categorías disponible en dev.
-- [ ] Bruno: puedo listar categorías y deals vacíos.
+
+- Migración/`synchronize` crea las tres tablas sin errores.
+- Seed de categorías disponible en dev.
+- Bruno: puedo listar categorías y deals vacíos.
 
 ---
 
@@ -175,6 +183,7 @@ Añadir en `bruno/api/`:
 ### C.2 Estrategia de filtrado 🤖
 
 Configurable en `.env`:
+
 ```
 DEAL_MIN_DISCOUNT=30        # %
 DEAL_MIN_PRICE=5            # €
@@ -183,6 +192,7 @@ DEAL_LOOKBACK_DAYS=14       # para dedupe
 ```
 
 Criterios de aceptación de un `Deal`:
+
 - Descuento real (precio actual < precio medio 90 días × (1 - MIN_DISCOUNT/100)).
 - Disponible en Amazon ES (prime opcional).
 - No publicado recientemente.
@@ -213,9 +223,10 @@ Criterios de aceptación de un `Deal`:
 - `bruno/api/deals/list-pending.bru`
 
 **Criterios de salida**:
-- [ ] Ejecutar `ingest-now` llena la tabla `deal` con candidatos reales (token Keepa consumido).
-- [ ] Ejecuciones repetidas no duplican (`asin` único + dedupe por ventana).
-- [ ] Logs indican tokens Keepa consumidos por llamada.
+
+- Ejecutar `ingest-now` llena la tabla `deal` con candidatos reales (token Keepa consumido).
+- Ejecuciones repetidas no duplican (`asin` único + dedupe por ventana).
+- Logs indican tokens Keepa consumidos por llamada.
 
 ---
 
@@ -226,6 +237,7 @@ Criterios de aceptación de un `Deal`:
 ### D.1 Utilidades Amazon 🤖
 
 `src/amazon/amazon.service.ts`:
+
 - `buildAffiliateUrl(asin: string): string` → `https://www.amazon.es/dp/{ASIN}/?tag={AMAZON_AFFILIATE_TAG}`.
 - `buildShortUrl(asin)` opcional (reserva para Fase H/PA-API).
 - Sanea `AMAZON_MARKETPLACE` desde config.
@@ -233,6 +245,7 @@ Criterios de aceptación de un `Deal`:
 ### D.2 Plantilla `static/tpl/deal.html` 🤖
 
 Ya existe como placeholder. Rellenar marcadores:
+
 ```
 #{{category}}
 <b>{{title}}</b>
@@ -253,9 +266,10 @@ Ya existe como placeholder. Rellenar marcadores:
 - `bruno/api/deals/preview.bru` → `POST /api/deals/:id/preview` devuelve el HTML renderizado sin publicar.
 
 **Criterios de salida**:
-- [ ] Preview por API devuelve el mensaje tal y como se publicaría.
-- [ ] Manual en Telegram: copiar preview y verificar que parse HTML queda correcto.
-- [ ] Incluye obligatoriamente el **aviso legal** Amazon.
+
+- Preview por API devuelve el mensaje tal y como se publicaría.
+- Manual en Telegram: copiar preview y verificar que parse HTML queda correcto.
+- Incluye obligatoriamente el **aviso legal** Amazon.
 
 ---
 
@@ -276,10 +290,12 @@ Ya existe como placeholder. Rellenar marcadores:
 ### E.2 Cola de publicación 🤖
 
 Dos modos soportados (configurable):
+
 - **Simple**: cron cada X minutos publica el próximo `APPROVED` (FIFO por `detectedAt`).
 - **Spread**: distribuye N publicaciones por día en un rango horario (`PUBLISH_WINDOW_START=09`, `END=22`, `PUBLISH_MAX_PER_DAY=6`).
 
 Variables:
+
 ```
 PUBLISH_CRON=*/10 * * * *
 PUBLISH_MAX_PER_DAY=6
@@ -290,11 +306,12 @@ PUBLISH_WINDOW_END=22
 ### E.3 Aprobación de `Deal` 🤖
 
 Flujo decidido en Fase F (admin manual vs auto-approve):
+
 - `DEAL_AUTO_APPROVE=true|false`.
 - Si `true`: al ingestar pasa directo a `APPROVED`.
 - Si `false`: queda `PENDING` hasta que el admin use `/publish <id>` o `/skip <id>`.
 
-Recomendación: **`false` en los primeros meses** para controlar calidad.
+Recomendación: `**false` en los primeros meses** para controlar calidad.
 
 ### E.4 Endpoints admin 🤖
 
@@ -309,9 +326,10 @@ Recomendación: **`false` en los primeros meses** para controlar calidad.
 - `bruno/api/deals/skip.bru`
 
 **Criterios de salida**:
-- [ ] Con un `Deal` en `APPROVED`, el cron publica en el canal real.
-- [ ] Respeta `PUBLISH_MAX_PER_DAY`.
-- [ ] Rate limits de Telegram manejados (log + backoff).
+
+- Con un `Deal` en `APPROVED`, el cron publica en el canal real.
+- Respeta `PUBLISH_MAX_PER_DAY`.
+- Rate limits de Telegram manejados (log + backoff).
 
 ---
 
@@ -325,15 +343,17 @@ En `WebhookService.handleMessage`, solo procesar comandos admin si `message.chat
 
 ### F.2 Comandos 🤖
 
-| Comando | Efecto |
-|---------|--------|
-| `/stats` | Número de deals por estado, publicaciones del día, tokens Keepa estimados |
-| `/pending` | Últimos 5 `PENDING` con botones inline `[Publicar]` / `[Saltar]` |
-| `/publish <id>` | Publica deal por id corto |
-| `/skip <id>` | Marca `SKIPPED` |
-| `/pause` | Desactiva cron de publicación |
-| `/resume` | Reactiva cron |
-| `/help` | Recordatorio de comandos |
+
+| Comando         | Efecto                                                                    |
+| --------------- | ------------------------------------------------------------------------- |
+| `/stats`        | Número de deals por estado, publicaciones del día, tokens Keepa estimados |
+| `/pending`      | Últimos 5 `PENDING` con botones inline `[Publicar]` / `[Saltar]`          |
+| `/publish <id>` | Publica deal por id corto                                                 |
+| `/skip <id>`    | Marca `SKIPPED`                                                           |
+| `/pause`        | Desactiva cron de publicación                                             |
+| `/resume`       | Reactiva cron                                                             |
+| `/help`         | Recordatorio de comandos                                                  |
+
 
 ### F.3 Callback queries 🤖
 
@@ -346,8 +366,9 @@ En `WebhookService.handleMessage`, solo procesar comandos admin si `message.chat
 - `bruno/api/webhook/post-admin-callback.bru` (simula un click en inline keyboard).
 
 **Criterios de salida**:
-- [ ] Desde tu Telegram puedes ver pendientes y publicar/skipear con botones.
-- [ ] Comandos ignorados si los envía otro chat.
+
+- Desde tu Telegram puedes ver pendientes y publicar/skipear con botones.
+- Comandos ignorados si los envía otro chat.
 
 ---
 
@@ -371,6 +392,7 @@ En `WebhookService.handleMessage`, solo procesar comandos admin si `message.chat
 ### G.3 Health check extendido 🤖
 
 Ampliar `AppController` para comprobar:
+
 - DB conectada (ya lo hace).
 - Keepa alcanzable (cacheado 5 min).
 - Telegram alcanzable (`getMe`).
@@ -381,8 +403,9 @@ Ampliar `AppController` para comprobar:
 - Errores 3+ veces consecutivas → mensaje inmediato al admin.
 
 **Criterios de salida**:
-- [ ] `/api/stats` responde con los contadores clave.
-- [ ] Recibes resumen diario en tu chat privado.
+
+- `/api/stats` responde con los contadores clave.
+- Recibes resumen diario en tu chat privado.
 
 ---
 
@@ -395,13 +418,13 @@ Ampliar `AppController` para comprobar:
 1. Confirmar en el panel de Afiliados que **PA-API** está habilitada.
 2. Crear credenciales **Access Key / Secret Key**, anotar `PartnerTag`.
 3. Rellenar en `.env`:
-   ```
+  ```
    PAAPI_ACCESS_KEY=...
    PAAPI_SECRET_KEY=...
    PAAPI_PARTNER_TAG=...
    PAAPI_HOST=webservices.amazon.es
    PAAPI_REGION=eu-west-1
-   ```
+  ```
 
 ### H.2 `AmazonPaapiService` 🤖
 
@@ -423,8 +446,9 @@ Ampliar `AppController` para comprobar:
 - Revisar condiciones de uso de PA-API (no cachear precios más de 24 h, no usar en apps de terceros).
 
 **Criterios de salida**:
-- [ ] `Deal` creado con `source=paapi` tiene título e imagen correctos.
-- [ ] Fallback automático a Keepa si PA-API falla.
+
+- `Deal` creado con `source=paapi` tiene título e imagen correctos.
+- Fallback automático a Keepa si PA-API falla.
 
 ---
 
@@ -434,15 +458,17 @@ Ampliar `AppController` para comprobar:
 
 ### I.1 Opciones de hosting (comparativa)
 
-| Opción | Coste | Pros | Contras |
-|--------|-------|------|---------|
-| **Railway** | $5/mes crédito + *hobby plan* ~$5/mes de uso real | Despliegue desde git, Postgres y webhook HTTPS listos, ya tienes `nixpacks.toml` y `railway.json` en el repo | Precios han subido respecto a la versión free; facturación en USD |
-| **Fly.io** | Free tier generoso (3 VMs compartidas pequeñas) + Postgres *shared-cpu-1x* gratis con límites | HTTPS y regiones europeas, CLI cómoda, se paga solo el exceso | Postgres gestionado puede ser lento en el tier gratis; se requiere tarjeta |
-| **Render** | Free (servicios duermen a los 15 min) o Starter $7/mes | Despliegue git + Postgres managed; UI simple | El plan gratis se apaga → webhook de Telegram fallaría; necesitas plan de pago |
-| **Hetzner Cloud CX22** (VPS) | ~4,5€/mes | **Mejor relación calidad/precio de Europa**, 2 vCPU + 4 GB + 40 GB NVMe, datacenter Alemania/Finlandia | Debes administrar tú (Docker, nginx/caddy, backups) |
-| **Contabo VPS S** | ~5–6€/mes | Más RAM/CPU por el precio | Reputación mixta de rendimiento I/O, soporte lento |
-| **Oracle Cloud Free Tier** (ARM) | 0€ | 4 vCPU ARM + 24 GB RAM *gratis para siempre* | Aprobación de cuenta complicada; riesgo de reclamación del recurso; imagen ARM |
-| **VPS pequeño en OVH/Scaleway** | 3–5€/mes | Europeos, facturación en € | Especificaciones más modestas que Hetzner |
+
+| Opción                           | Coste                                                                                         | Pros                                                                                                         | Contras                                                                        |
+| -------------------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------ |
+| **Railway**                      | $5/mes crédito + *hobby plan* ~$5/mes de uso real                                             | Despliegue desde git, Postgres y webhook HTTPS listos, ya tienes `nixpacks.toml` y `railway.json` en el repo | Precios han subido respecto a la versión free; facturación en USD              |
+| **Fly.io**                       | Free tier generoso (3 VMs compartidas pequeñas) + Postgres *shared-cpu-1x* gratis con límites | HTTPS y regiones europeas, CLI cómoda, se paga solo el exceso                                                | Postgres gestionado puede ser lento en el tier gratis; se requiere tarjeta     |
+| **Render**                       | Free (servicios duermen a los 15 min) o Starter $7/mes                                        | Despliegue git + Postgres managed; UI simple                                                                 | El plan gratis se apaga → webhook de Telegram fallaría; necesitas plan de pago |
+| **Hetzner Cloud CX22** (VPS)     | ~4,5€/mes                                                                                     | **Mejor relación calidad/precio de Europa**, 2 vCPU + 4 GB + 40 GB NVMe, datacenter Alemania/Finlandia       | Debes administrar tú (Docker, nginx/caddy, backups)                            |
+| **Contabo VPS S**                | ~5–6€/mes                                                                                     | Más RAM/CPU por el precio                                                                                    | Reputación mixta de rendimiento I/O, soporte lento                             |
+| **Oracle Cloud Free Tier** (ARM) | 0€                                                                                            | 4 vCPU ARM + 24 GB RAM *gratis para siempre*                                                                 | Aprobación de cuenta complicada; riesgo de reclamación del recurso; imagen ARM |
+| **VPS pequeño en OVH/Scaleway**  | 3–5€/mes                                                                                      | Europeos, facturación en €                                                                                   | Especificaciones más modestas que Hetzner                                      |
+
 
 #### Recomendación por perfil
 
@@ -463,11 +489,11 @@ Ampliar `AppController` para comprobar:
 5. Comando start: `yarn start:prod`.
 6. Dominio público `*.up.railway.app` o **dominio propio** `gangabot.com` (~1€/mes en Namecheap/Porkbun) con CNAME al origen que te dé el hosting.
 7. Registrar webhook productivo (sustituye si usas subdominio, p. ej. `api.gangabot.com`):
-   ```bash
+  ```bash
    curl -F "url=https://gangabot.com/api/webhook" \
         -F "secret_token=$TELEGRAM_WEBHOOK_SECRET" \
         "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setWebhook"
-   ```
+  ```
 
 ### I.3 Pasos de despliegue (ejemplo Hetzner) 🧑‍💻🤖
 
@@ -476,9 +502,9 @@ Ampliar `AppController` para comprobar:
 3. Instalar Docker + Docker Compose.
 4. Clonar repo, `cp .env.template .env`, rellenar.
 5. `docker-compose.prod.yaml` (a crear) con:
-   - Servicio `app` (imagen Node 22).
-   - Servicio `db` (Postgres persistente en volumen).
-   - Servicio `caddy` para TLS automática (Let's Encrypt).
+  - Servicio `app` (imagen Node 22).
+  - Servicio `db` (Postgres persistente en volumen).
+  - Servicio `caddy` para TLS automática (Let's Encrypt).
 6. Registrar webhook igual que en I.2 apuntando al dominio.
 7. Backups: `pg_dump` diario a **Backblaze B2** (~0,005$/GB/mes).
 
@@ -496,9 +522,10 @@ Ampliar `AppController` para comprobar:
 - No exponer `/api/seed` en producción (guard por `STAGE !== 'prod'` o protección por token admin).
 
 **Criterios de salida**:
-- [ ] Hosting elegido y documentado en README.
-- [ ] Webhook productivo registrado; bot responde desde dominio público.
-- [ ] Backups automáticos funcionando y probados (restore en local).
+
+- Hosting elegido y documentado en README.
+- Webhook productivo registrado; bot responde desde dominio público.
+- Backups automáticos funcionando y probados (restore en local).
 
 ---
 
@@ -530,30 +557,30 @@ Ampliar `AppController` para comprobar:
 
 ## Resumen de acciones manuales (checklist rápido) 🧑‍💻
 
-- [ ] Alta en **afiliados.amazon.es** y anotar tag.
-- [ ] Crear **canal de Telegram** y añadir el bot como admin.
-- [ ] Crear **bot con BotFather** y guardar `TELEGRAM_BOT_TOKEN`.
-- [ ] Obtener `TELEGRAM_CHANNEL_ID` y `TELEGRAM_ADMIN_CHAT_ID`.
-- [ ] Generar `TELEGRAM_WEBHOOK_SECRET`.
-- [ ] Alta en **Keepa** y plan API → `KEEPA_API_KEY`.
-- [ ] Registrar al menos **3 ventas cualificadas** (usando tu propio tag) dentro de los 180 días.
-- [ ] Solicitar **PA-API** cuando estén las 3 ventas; guardar credenciales.
-- [ ] Elegir **hosting** (Railway / Hetzner / Fly.io) y comprar opcionalmente dominio.
-- [ ] Configurar **webhook productivo** con `setWebhook`.
-- [ ] Configurar **backups** de Postgres.
+- Alta en **afiliados.amazon.es** y anotar tag.
+- Crear **canal de Telegram** y añadir el bot como admin.
+- Crear **bot con BotFather** y guardar `TELEGRAM_BOT_TOKEN`.
+- Obtener `TELEGRAM_CHANNEL_ID` y `TELEGRAM_ADMIN_CHAT_ID`.
+- Generar `TELEGRAM_WEBHOOK_SECRET`.
+- Alta en **Keepa** y plan API → `KEEPA_API_KEY`.
+- Registrar al menos **3 ventas cualificadas** (usando tu propio tag) dentro de los 180 días.
+- Solicitar **PA-API** cuando estén las 3 ventas; guardar credenciales.
+- Elegir **hosting** (Railway / Hetzner / Fly.io) y comprar opcionalmente dominio.
+- Configurar **webhook productivo** con `setWebhook`.
+- Configurar **backups** de Postgres.
 
 ## Resumen de acciones automatizables (checklist rápido) 🤖
 
-- [ ] Entidades `Category`, `Deal`, `DealEvent` + migraciones.
-- [ ] `SeedService` para categorías.
-- [ ] Cliente `KeepaService` + `DealIngestorService` + cron `@nestjs/schedule`.
-- [ ] `AmazonService.buildAffiliateUrl`.
-- [ ] `DealFormatterService` con plantilla `deal.html` y escape HTML.
-- [ ] `PublisherService` con throttling y ventana horaria.
-- [ ] Comandos admin en `WebhookService` (chat privado).
-- [ ] `/api/stats`, logs estructurados, resumen diario.
-- [ ] `AmazonPaapiService` cuando se habilite PA-API.
-- [ ] Dockerfile/compose producción, CI/CD, deploy automático.
+- Entidades `Category`, `Deal`, `DealEvent` + migraciones.
+- `SeedService` para categorías.
+- Cliente `KeepaService` + `DealIngestorService` + cron `@nestjs/schedule`.
+- `AmazonService.buildAffiliateUrl`.
+- `DealFormatterService` con plantilla `deal.html` y escape HTML.
+- `PublisherService` con throttling y ventana horaria.
+- Comandos admin en `WebhookService` (chat privado).
+- `/api/stats`, logs estructurados, resumen diario.
+- `AmazonPaapiService` cuando se habilite PA-API.
+- Dockerfile/compose producción, CI/CD, deploy automático.
 
 ---
 
@@ -563,3 +590,4 @@ Ampliar `AppController` para comprobar:
 - Tras B y C, ya hay datos en BD sin publicar nada: momento ideal para validar calidad de ofertas sin gastar reputación del canal.
 - Ir a **Fase E/F** solo cuando la calidad del ingestor sea aceptable.
 - **Hosting** (Fase I) puede hacerse antes de lanzar: Railway de entrada y migrar a Hetzner cuando los costes de Keepa+hosting lo justifiquen.
+

@@ -1,7 +1,8 @@
 # Ganga Bot — Bot de Telegram para ofertas de Amazon (resumen y plan de acción)
 
 > **Marca y dominio:** Ganga Bot · [gangabot.com](https://gangabot.com)  
-> **Stack backend:** NestJS + Postgres (nombre de BD por defecto en el repo: `gangabot`).
+> **Stack backend:** NestJS + Postgres (nombre de BD por defecto en el repo: `gangabot`).  
+> **Amazon Afiliados (ES):** ID de afiliado `gangabot06-21` — ver [`cuenta-amazon-afiliados.md`](./cuenta-amazon-afiliados.md).
 
 ## ¿Qué es y cómo funciona?
 
@@ -11,7 +12,7 @@ Formato de cada publicación:
 - Categoría con hashtag (`#Electrónica`, `#Moda`...)
 - Nombre del producto
 - Precio original ❌ y precio actual ✅
-- Enlace de Amazon con tu tag de afiliado (`?tag=TU-TAG`)
+- Enlace de Amazon con tu tag de afiliado (`?tag=gangabot06-21` en Ganga Bot)
 - Aviso legal obligatorio: *"En calidad de Afiliado de Amazon, obtengo ingresos por las compras adscritas"*
 
 ---
@@ -50,7 +51,7 @@ Keepa es independiente de Amazon y no requiere ventas previas. Permite:
 ## Estrategia para los primeros meses (sin PA API)
 
 1. Usar **Keepa** para detectar chollos
-2. Construir el enlace con tu tag manualmente: `https://www.amazon.es/dp/ASIN/?tag=TU-TAG`
+2. Construir el enlace con tu tag manualmente: `https://www.amazon.es/dp/ASIN/?tag=gangabot06-21`
 3. Publicar semi-automático hasta conseguir las 3 ventas
 4. Solicitar PA API y automatizar todo
 

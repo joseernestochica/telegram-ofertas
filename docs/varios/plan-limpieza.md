@@ -238,7 +238,7 @@ TELEGRAM_CHANNEL_ID=        # ej: -1001234567890 (canal donde se publican oferta
 TELEGRAM_ADMIN_CHAT_ID=     # chat privado del admin
 
 # --- Amazon Afiliados ---
-AMAZON_AFFILIATE_TAG=       # ej: tucanal-21
+AMAZON_AFFILIATE_TAG=       # Ganga Bot: gangabot06-21 (ver docs/varios/cuenta-amazon-afiliados.md)
 AMAZON_MARKETPLACE=www.amazon.es
 
 # --- Keepa (fuente principal de ofertas mientras no haya PA-API) ---
@@ -305,7 +305,7 @@ yarn build
 ### 4.3 Plantillas
 
 - Reescribir `static/tpl/message-welcome.html` con el copy del nuevo bot:
-  > "¡Hola! Este bot publica las mejores ofertas de Amazon en nuestro canal. Únete a [@tucanal]."
+  > "¡Hola! Este bot publica las mejores ofertas de Amazon en nuestro canal. Únete a [@tu_canal_telegram]."
 - Crear `static/tpl/deal.html` (plantilla placeholder de oferta) con marcadores:
   ```html
   #{{category}}
