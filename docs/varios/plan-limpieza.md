@@ -225,7 +225,7 @@ PORT=3020
 
 # --- Base de datos ---
 DB_HOST=localhost
-DB_PORT=5432
+DB_PORT=30432
 DB_USER=postgres
 DB_PASSWORD=postgres
 DB_NAME=telegram_amazon
