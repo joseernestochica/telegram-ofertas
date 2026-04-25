@@ -1,6 +1,6 @@
 import { HandleErrorService } from 'src/common/services';
 import { ConfigService } from '@nestjs/config';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { SendMessageService } from '../send-message/send-message.service';
 import { WebhookCallbackQueryDto, WebhookMessageDto, WebhookUpdateDto } from './dto';
 
@@ -8,25 +8,25 @@ import { WebhookCallbackQueryDto, WebhookMessageDto, WebhookUpdateDto } from './
 export class WebhookService {
 
 	private readonly webhookSecret: string;
+	private readonly adminChatId: string | undefined;
 
 	constructor (
 		private readonly configService: ConfigService,
 		private readonly sendMessageService: SendMessageService,
-		private readonly handleErrorService: HandleErrorService
+		private readonly handleErrorService: HandleErrorService,
 	) {
 		this.webhookSecret = this.configService.get( 'TELEGRAM_WEBHOOK_SECRET' );
+		this.adminChatId = this.configService.get<string>( 'TELEGRAM_ADMIN_CHAT_ID' );
 	}
 
 	async handleUpdate ( update: WebhookUpdateDto, secretToken: string ) {
 
-		// Verificar el token secreto
 		if ( secretToken !== this.webhookSecret ) {
 			this.handleErrorService.handleUnautorizedException( 'Invalid webhook secret token' );
 		}
 
 		try {
 
-			// Aquí procesamos la actualización recibida
 			if ( update.message ) {
 				await this.handleMessage( update.message );
 			} else if ( update.callback_query ) {
@@ -42,22 +42,34 @@ export class WebhookService {
 
 	private async handleMessage ( message: WebhookMessageDto ) {
 
-		// Procesar mensajes recibidos
-		console.log( 'Received message:', message );
+		const text = message.text?.trim();
+		const chatId = message.chat.id;
 
-		// Mensaje de bienvenida
-		if ( message.text === '/start' ) {
-			await this.sendMessageService.startWebApp( message.chat.id );
+		if ( text === '/start' ) {
+			await this.sendMessageService.sendWelcomeFromTemplate( chatId );
+			return;
 		}
 
+		if ( text === '/help' ) {
+			await this.sendMessageService.sendText(
+				chatId,
+				'<b>Ayuda</b>\n/start — Mensaje de bienvenida\n/help — Esta ayuda',
+			);
+			return;
+		}
+
+		if ( this.adminChatId && String( chatId ) === this.adminChatId ) {
+			if ( text === '/stats' || text === '/publish' || text === '/skip' ) {
+				await this.sendMessageService.sendText( chatId, '<i>Comando admin pendiente de implementar.</i>' );
+			}
+		}
 	}
 
 	private async handleCallbackQuery ( callbackQuery: WebhookCallbackQueryDto ) {
 
-		// Procesar callback queries (botones inline)
-		console.log( 'Received callback query:', callbackQuery );
-		// Implementa la lógica para manejar diferentes callbacks
-
+		switch ( callbackQuery.data ) {
+			default:
+				break;
+		}
 	}
-
-} 
+}
