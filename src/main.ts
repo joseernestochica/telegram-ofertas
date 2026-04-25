@@ -36,8 +36,8 @@ async function bootstrap () {
     );
 
     const config = new DocumentBuilder()
-      .setTitle( 'Contenedor Nest - PostgreSQL' )
-      .setDescription( 'Contenedor a partir de cual generar Backend con Nest y PostgreSQL' )
+      .setTitle( 'Telegram Amazon deals bot' )
+      .setDescription( 'API NestJS del bot de ofertas Amazon en Telegram' )
       .setVersion( '1.0' )
       .build();
     const documentFactory = () => SwaggerModule.createDocument( app, config );

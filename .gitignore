@@ -7,7 +7,8 @@
 # Data
 /postgres
 /static/*
-!static/blank.png
+!static/tpl/
+!static/tpl/**
 /postman
 
 # Logs
