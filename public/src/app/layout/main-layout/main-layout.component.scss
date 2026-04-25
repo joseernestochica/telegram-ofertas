@@ -1,0 +1,100 @@
+:host {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    width: 100%;
+    margin: 0;
+    position: relative;
+}
+
+.main-content {
+    flex: 1;
+    padding: 0;
+    padding-bottom: 70px; // Espacio para el menú fijo
+    width: 100%;
+    position: relative;
+}
+
+.footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgb(194, 151, 219);
+    box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+    z-index: 1000;
+
+    .dock-window {
+        width: 100%;
+        background: rgb(194, 151, 219);
+    }
+
+    ::ng-deep {
+        .p-dock {
+            width: 100% !important;
+            background: rgb(194, 151, 219) !important;
+            --p-dock-border-color: transparent !important;
+            --p-dock-border-radius: 0 !important;
+            --p-dock-background: transparent !important;
+            border: none !important;
+        }
+
+        .p-dock-list {
+            width: 100% !important;
+            display: flex;
+            justify-content: stretch;
+            align-items: stretch;
+            padding: 0 !important;
+            margin: 0 !important;
+            background: rgb(194, 151, 219) !important;
+            border: none !important;
+        }
+
+        .p-dock-list > * {
+            width: 25% !important;
+            flex: 0 0 25% !important;
+            max-width: 25% !important;
+            min-width: 25% !important;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: stretch !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: rgb(194, 151, 219) !important;
+            border: none !important;
+        }
+    }
+
+    ::ng-deep .p-dock-item {
+        padding: 0 20px !important;
+    }
+    ::ng-deep .p-dock-action {
+        padding: 0 12px !important;
+    }
+    ::ng-deep .p-dock-item img {
+        margin: 0 8px !important;
+    }
+
+    ::ng-deep .p-tabmenu {
+        .p-tabmenu-nav {
+            justify-content: space-around;
+            border: none;
+            padding: 0.5rem;
+        }
+
+        .p-menuitem-link {
+            flex-direction: column;
+            padding: 0.5rem;
+
+            .p-menuitem-icon {
+                font-size: 1.5rem;
+                margin-right: 0;
+                margin-bottom: 0.25rem;
+            }
+
+            .p-menuitem-text {
+                font-size: 0.875rem;
+            }
+        }
+    }
+} 

@@ -1,0 +1,25 @@
+{
+	"editor.fontSize": 16,
+	"editor.fontFamily": "JetBrains Mono",
+	"editor.tabSize": 2,
+	"workbench.colorCustomizations": {
+		"activityBar.activeBackground": "#ff74f6",
+		"activityBar.background": "#ff74f6",
+		"activityBar.foreground": "#15202b",
+		"activityBar.inactiveForeground": "#15202b99",
+		"activityBarBadge.background": "#eeff00",
+		"activityBarBadge.foreground": "#15202b",
+		"commandCenter.border": "#15202b99",
+		"sash.hoverBorder": "#ff74f6",
+		"statusBar.background": "#ff41f3",
+		"statusBar.foreground": "#15202b",
+		"statusBarItem.hoverBackground": "#ff0ef0",
+		"statusBarItem.remoteBackground": "#ff41f3",
+		"statusBarItem.remoteForeground": "#15202b",
+		"titleBar.activeBackground": "#ff41f3",
+		"titleBar.activeForeground": "#15202b",
+		"titleBar.inactiveBackground": "#ff41f399",
+		"titleBar.inactiveForeground": "#15202b99"
+	},
+	"peacock.color": "#FF41F3"
+}

@@ -1,0 +1,151 @@
+import { Controller, Get, Post, Body, UseGuards, Query, Param, ParseUUIDPipe, Patch, Delete } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+import { ApiTags } from '@nestjs/swagger';
+
+import { AuthService } from './auth.service';
+import { CreateUserDto, LoginUserDto, UpdateRefreshTokenDto, UpdateUserDto } from './dto';
+import { GetUser, RoleProtected, Auth } from './decorators';
+import { User } from './entities';
+import { UserRoleGuard } from './guards';
+import { ValidRoles } from './interfaces';
+import { GetParamsDto } from 'src/common/dto';
+
+@ApiTags( 'Auth' )
+@Controller( 'auth' )
+export class AuthController {
+
+  constructor ( private readonly authService: AuthService ) { }
+
+  @Get( 'users' )
+  @Auth( ValidRoles.admin )
+  findAll ( @Query() getParamsDto: GetParamsDto ) {
+
+    return this.authService.findAll( getParamsDto );
+
+  }
+
+  @Get( 'user-admin/:id' )
+  @Auth( ValidRoles.admin )
+  findOneAdmin ( @Param( 'id', ParseUUIDPipe ) id: string ) {
+
+    return this.authService.findOne( id );
+
+  }
+
+  @Get( 'user' )
+  @Auth( ValidRoles.user )
+  findOneUser ( @GetUser() user: User ) {
+
+    const { id } = user;
+    return this.authService.findOne( id );
+
+  }
+
+  @Post( 'register' )
+  createUser ( @Body() createUserDto: CreateUserDto ) {
+
+    return this.authService.create( createUserDto );
+
+  }
+
+  @Post( 'login' )
+  loginUser ( @Body() loginUserDto: LoginUserDto ) {
+
+    return this.authService.login( loginUserDto );
+
+  }
+
+  @Auth()
+  @Get( 'check-status' )
+  checkAuthStatus ( @GetUser() user: User ) {
+
+    return this.authService.checkAuthStatus( user );
+
+  }
+
+  @Get( 'private' )
+  @UseGuards( AuthGuard() )
+  testingPrivateRoute ( @GetUser( [ 'roles' ] ) user: User ) {
+
+    return {
+      message: 'This is a private route',
+      ok: true,
+      user
+    };
+
+  }
+
+  @Get( 'private2' )
+  @RoleProtected( ValidRoles.superUser )
+  @UseGuards( AuthGuard(), UserRoleGuard )
+  testingPrivateRoute2 ( @GetUser() user: User ) {
+
+    return {
+      message: 'This is a private route 2',
+      ok: true,
+      user
+    };
+
+  }
+
+  @Get( 'private3' )
+  @Auth( ValidRoles.admin, ValidRoles.superUser )
+  testingPrivateRoute3 ( @GetUser() user: User ) {
+
+    return {
+      message: 'This is a private route 2',
+      ok: true,
+      user
+    };
+
+  }
+
+  @Post( 'refresh-token' )
+  async refreshToken (
+    @Body() updateTokenDto: UpdateRefreshTokenDto
+  ) {
+
+    return await this.authService.refreshToken( updateTokenDto );
+
+  }
+
+  @Patch( 'user' )
+  @Auth( ValidRoles.user )
+  updateUser (
+    @GetUser() user: User,
+    @Body() updateUserDto: UpdateUserDto
+  ) {
+
+    return this.authService.update( user.id, updateUserDto );
+
+  }
+
+  @Delete( 'user/:id' )
+  @Auth( ValidRoles.admin )
+  deleteAdmin (
+    @Param( 'id', ParseUUIDPipe ) id: string
+  ) {
+    return this.authService.deleteUserHard( id );
+  }
+
+  @Delete( 'refresh-token/:id/:token' )
+  deleteRefreshToken (
+    @Param( 'id', ParseUUIDPipe ) id: string,
+    @Param( 'token', ParseUUIDPipe ) token: string
+  ) {
+    return this.authService.deleteRefreshToken( id, token );
+  }
+
+  @Get( 'user-telegram/:idTelegram' )
+  findByTelegramId ( @Param( 'idTelegram' ) idTelegram: number ) {
+    return this.authService.findHashByTelegramId( idTelegram );
+  }
+
+  @Patch( 'user-active/:hash' )
+  updateUserActive ( @Param( 'hash', ParseUUIDPipe ) hash: string ) {
+    return this.authService.updateUserActive( hash );
+  }
+
+}
+
+

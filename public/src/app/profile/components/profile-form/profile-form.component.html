@@ -1,0 +1,214 @@
+<p-toast position="top-center"></p-toast>
+<form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="p-fluid">
+	<div class="grid">
+		<div class="col-12 md:col-6">
+			<div class="field">
+				<label for="bio" class="font-bold text-lg">Biografía</label>
+				<textarea rows="5" pTextarea formControlName="bio"></textarea>
+			</div>
+			<small class="p-error block text-red-700 text-xs" *ngIf="profileForm.get('bio')?.invalid && profileForm.get('bio')?.touched">
+				La biografía es requerida y debe tener al menos 100 caracteres
+			</small>
+		</div>
+
+		<!-- selector paises -->
+		<div class="col-12 md:col-6">
+			<div class="field">
+				<label for="country" class="font-bold text-lg">Selecciona tu país</label>
+				<p-select
+					id="country"
+					[options]="countries"
+					formControlName="locationCountry"
+					optionLabel="name"
+					[filter]="true"
+					[appendTo]="'body'"
+					placeholder="Selecciona tu país">
+					<ng-template let-country pTemplate="item">
+						<span>{{country.flag}} {{country.name}}</span>
+					</ng-template>
+				</p-select>
+				<small class="p-error block text-red-700 text-xs" *ngIf="profileForm.get('locationCountry')?.invalid && profileForm.get('locationCountry')?.touched">
+					Por favor, selecciona tu país
+				</small>
+			</div>
+		</div>
+
+		<div class="col-12 md:col-6">
+			<div class="field">
+				<label for="location" class="font-bold text-lg">Tu ubicación</label>
+				<p-autoComplete
+					id="location"
+					formControlName="locationSearch"
+					[suggestions]="locationSuggestions"
+					(completeMethod)="searchLocation($event)"
+					(onSelect)="onLocationSelect($event)"
+					[field]="'display_name'"
+					[dropdown]="true"
+					[forceSelection]="true"
+					[style]="{'width':'100%'}"
+					[dropdownIcon]="'pi pi-search'"
+					[showClear]="true"
+					placeholder="código postal y ciudad y luego selecciona">
+				</p-autoComplete>
+				<small class="p-error block text-red-700 text-xs" *ngIf="profileForm.get('locationSearch')?.invalid && profileForm.get('locationSearch')?.touched">
+					Por favor, selecciona tu ubicación
+				</small>
+			</div>
+		</div>
+
+		<div class="col-12 md:col-6">
+			<div class="field">
+				<label for="birthDate" class="font-bold text-lg">Fecha de Nacimiento</label>
+				<p-datepicker id="birthDate" formControlName="birthDate" [showIcon]="true" [maxDate]="maxDate" [minDate]="minDate" [defaultDate]="maxDate" [appendTo]="'body'"></p-datepicker>
+			</div>
+			<small class="p-error block text-red-700 text-xs" *ngIf="profileForm.get('birthDate')?.invalid && profileForm.get('birthDate')?.touched">
+				La fecha de nacimiento es requerida
+			</small>
+		</div>
+
+		<div class="col-12 md:col-6">
+			<div class="field">
+				<label for="gender" class="font-bold text-lg">Soy</label>
+				<div *ngFor="let gender of genders" class="flex items-center">
+					<p-radioButton [inputId]="gender.name"
+						name="gender"
+						[value]="gender.id"
+						formControlName="gender" />
+					<label [for]="gender.name" class="ml-2"> {{ gender.name }} </label>
+				</div>
+			</div>
+			<small class="p-error block text-red-700 text-xs" *ngIf="profileForm.get('gender')?.invalid && profileForm.get('gender')?.touched">
+				Por favor, defínete
+			</small>
+		</div>
+
+		<div class="col-12 md:col-6">
+			<div class="field">
+				<label for="genderPreferences" class="font-bold text-lg">Me interesan</label>
+				<div *ngFor="let preference of genderPreferences" class="flex items-center">
+					<p-checkbox [inputId]="preference.name" name="genderPreferences" [value]="preference" formControlName="genderPreferences" />
+					<label [for]="preference.name" class="ml-2">{{ preference.name }}</label>
+				</div>
+				<small class="p-error block text-red-700 text-xs" *ngIf="profileForm.get('genderPreferences')?.invalid && profileForm.get('genderPreferences')?.touched">
+					Por favor, selecciona al menos un interés
+				</small>
+			</div>
+		</div>
+
+		<div class="col-12 md:col-6">
+			<div class="field">
+				<label for="occupation" class="font-bold text-lg">Trabajo</label>
+				<p-select
+					[options]="occupations"
+					formControlName="occupation"
+					optionLabel="name"
+					[filter]="false"
+					[appendTo]="'body'"
+					placeholder="Selecciona una ocupación">
+				</p-select>
+			</div>
+		</div>
+
+		<div class="col-12 md:col-6">
+			<div class="field">
+				<label for="school" class="font-bold text-lg">Estudios</label>
+				<p-select id="school"
+					[options]="schools"
+					formControlName="school"
+					optionLabel="name"
+					[filter]="false"
+					[appendTo]="'body'"
+					placeholder="Selecciona una escuela">
+				</p-select>
+			</div>
+		</div>
+
+		<div class="col-12 md:col-6">
+			<div class="field">
+				<label for="interests" class="font-bold text-lg">Intereses</label>
+				<p-multiSelect id="interests" [options]="interests" formControlName="interests"
+					optionLabel="name" [filter]="false" [appendTo]="'body'" placeholder="Selecciona intereses">
+				</p-multiSelect>
+			</div>
+		</div>
+
+		<div class="col-12 md:col-6">
+			<div class="field">
+				<label for="lookFor" class="font-bold text-lg">Busco</label>
+				<div *ngFor="let option of lookFors" class="flex items-center">
+					<p-radioButton [inputId]="option.name"
+						name="lookFor"
+						[value]="option.id"
+						formControlName="lookFor" />
+					<label [for]="option.name" class="ml-2">{{ option.name }}</label>
+				</div>
+			</div>
+		</div>
+
+		<div class="col-12 md:col-6">
+			<div class="field">
+				<label for="horoscope" class="font-bold text-lg">Horóscopo</label>
+				<p-select id="horoscope"
+					[options]="horoscopes"
+					formControlName="horoscope"
+					optionLabel="name"
+					[filter]="false"
+					[appendTo]="'body'"
+					placeholder="Selecciona tu horóscopo">
+				</p-select>
+			</div>
+		</div>
+
+		<div class="col-12 md:col-6">
+			<div class="field">
+				<label for="height" class="font-bold text-lg">Altura (cm)</label>
+				<div class="flex align-items-center">
+					<p-slider id="height" formControlName="height" [min]="100" [max]="250" class="flex-grow-1"></p-slider>
+					<span class="ml-2">{{profileForm.get('height')?.value || 100}} cm</span>
+				</div>
+			</div>
+		</div>
+
+		<div class="col-12 md:col-6">
+			<div class="field">
+				<label class="font-bold text-lg">Rango de Edad Preferido</label>
+				<div class="flex align-items-center">
+					<p-slider formControlName="ageRange"
+						[range]="true"
+						[min]="18"
+						[max]="80"
+						class="flex-grow-1">
+					</p-slider>
+					<span class="ml-2">{{profileForm.get('ageRange')?.value?.[0] || 18}} - {{profileForm.get('ageRange')?.value?.[1] || 100}} años</span>
+				</div>
+			</div>
+		</div>
+
+		<div class="col-12 md:col-6">
+			<div class="field">
+				<label for="searchRadius" class="font-bold text-lg">Radio de Búsqueda (km)</label>
+				<div class="flex align-items-center">
+					<p-slider id="searchRadius"
+						formControlName="searchRadius"
+						[min]="1"
+						[max]="100"
+						class="flex-grow-1">
+					</p-slider>
+					<span class="ml-2">{{profileForm.get('searchRadius')?.value || 1}} km</span>
+				</div>
+			</div>
+		</div>
+
+		<div class="col-12">
+			<div class="field-checkbox">
+				<p-checkbox id="showMe" formControlName="showMe" [binary]="true"></p-checkbox>
+				<label for="showMe" class="font-bold text-lg">Mostrarme en búsquedas</label>
+			</div>
+		</div>
+
+	</div>
+</form>
+
+<div class="sticky-button">
+	<p-button type="submit" label="Guardar Perfil" [loading]="loading" (click)="onSubmit()"></p-button>
+</div>

@@ -1,0 +1,53 @@
+:host {
+    display: block;
+}
+
+.profile-form {
+    padding-bottom: 20px;
+}
+
+.sticky-button {
+    position: fixed;
+    bottom: 65px;
+    left: 0;
+    right: 0;
+    background: rgba(177, 130, 213, 0.7);
+    padding: 16px;
+    text-align: center;
+    z-index: 999;
+
+    ::ng-deep .p-button {
+        min-width: 200px;
+    }
+}
+
+:host ::ng-deep {
+    .field {
+        margin-bottom: 0.5rem;
+        textarea {
+            width: 100%;
+        }
+    }
+    .field label {
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+    .field-checkbox {
+        margin-bottom: 1.5rem;
+    }
+}
+
+.map-container {
+	width: 100%;
+	border-radius: 8px;
+	overflow: hidden;
+	border: 1px solid #e2e8f0;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+	:host ::ng-deep {
+		.leaflet-container {
+			height: 100%;
+			width: 100%;
+		}
+	}
+}
