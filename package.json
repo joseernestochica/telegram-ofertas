@@ -1,11 +1,14 @@
 {
-  "name": "telegram-amazon-deals-bot",
+  "name": "gangabot",
   "version": "0.0.1",
-  "description": "Bot de Telegram que publica ofertas de Amazon con enlaces de afiliado",
+  "description": "Ganga Bot — API NestJS del bot de ofertas Amazon en Telegram (gangabot.com)",
+  "homepage": "https://gangabot.com",
   "author": "",
   "private": true,
   "license": "UNLICENSED",
   "keywords": [
+    "gangabot",
+    "ganga-bot",
     "telegram",
     "amazon",
     "affiliates",

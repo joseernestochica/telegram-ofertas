@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "name": "telegram-amazon-deals-bot",
+  "name": "Ganga Bot",
   "type": "collection",
   "ignore": [
     "node_modules",

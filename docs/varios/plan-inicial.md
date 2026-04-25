@@ -1,4 +1,7 @@
-# Bot de Telegram para ofertas de Amazon — Resumen y plan de acción
+# Ganga Bot — Bot de Telegram para ofertas de Amazon (resumen y plan de acción)
+
+> **Marca y dominio:** Ganga Bot · [gangabot.com](https://gangabot.com)  
+> **Stack backend:** NestJS + Postgres (nombre de BD por defecto en el repo: `gangabot`).
 
 ## ¿Qué es y cómo funciona?
 

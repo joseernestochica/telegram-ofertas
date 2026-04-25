@@ -53,7 +53,7 @@ export class WebhookService {
 		if ( text === '/help' ) {
 			await this.sendMessageService.sendText(
 				chatId,
-				'<b>Ayuda</b>\n/start — Mensaje de bienvenida\n/help — Esta ayuda',
+				'<b>Ganga Bot — Ayuda</b>\n/start — Bienvenida\n/help — Esta ayuda\n🌐 gangabot.com',
 			);
 			return;
 		}

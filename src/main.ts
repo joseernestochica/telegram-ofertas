@@ -36,8 +36,8 @@ async function bootstrap () {
     );
 
     const config = new DocumentBuilder()
-      .setTitle( 'Telegram Amazon deals bot' )
-      .setDescription( 'API NestJS del bot de ofertas Amazon en Telegram' )
+      .setTitle( 'Ganga Bot API' )
+      .setDescription( 'Backend NestJS — ofertas Amazon en Telegram · gangabot.com' )
       .setVersion( '1.0' )
       .build();
     const documentFactory = () => SwaggerModule.createDocument( app, config );
@@ -46,7 +46,7 @@ async function bootstrap () {
     const port = process.env.PORT || 3020;
     await app.listen( port );
     logger.log( `Application is running on port: ${ port }` );
-    logger.log( `Health check available at: http://localhost:${ port }/health` );
+    logger.log( `Health check available at: http://localhost:${ port }/api/health` );
 
   } catch ( error ) {
     logger.error( 'Failed to start application:', error );

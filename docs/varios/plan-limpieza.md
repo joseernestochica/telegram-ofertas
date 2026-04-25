@@ -210,8 +210,8 @@ axios, rxjs, reflect-metadata, uuid
 
 **Actualizar** `name` y `description` del `package.json`:
 ```json
-"name": "telegram-amazon-deals-bot",
-"description": "Bot de Telegram que publica ofertas de Amazon con enlaces de afiliado"
+"name": "gangabot",
+"description": "Ganga Bot — ofertas Amazon en Telegram (gangabot.com)"
 ```
 
 ### 3.2 `.env.template`
@@ -228,7 +228,7 @@ DB_HOST=localhost
 DB_PORT=30432
 DB_USER=postgres
 DB_PASSWORD=postgres
-DB_NAME=telegram_amazon
+DB_NAME=gangabot
 
 # --- Telegram ---
 TELEGRAM_API_URL=https://api.telegram.org/bot
@@ -256,7 +256,7 @@ Eliminar del `.env` real las variables que ya no aplican (`JWT_SECRET`, `WEBAPP_
 
 ### 3.3 `docker-compose.yaml`
 
-Renombrar la BD en el servicio `postgres` (`POSTGRES_DB: telegram_amazon`) y el volumen si procede. Mantener Postgres como motor.
+Renombrar la BD en el servicio `postgres` (`POSTGRES_DB: gangabot`) y el volumen si procede. Mantener Postgres como motor.
 
 ### 3.4 Ejecución
 
@@ -351,7 +351,7 @@ curl -F "url=https://XXX.ngrok-free.app/api/webhook" \
    - Variables de entorno documentadas.
    - Roadmap (enlazar `plan-inicial.md` y el futuro `plan-implementacion.md`).
 
-2. **`package.json`**: `name`, `description`, `repository`, `keywords` (`telegram`, `amazon`, `affiliates`, `bot`, `nestjs`).
+2. **`package.json`**: `name`, `description`, `repository`, `keywords` (`gangabot`, `ganga-bot`, `telegram`, `amazon`, `nestjs`).
 
 3. **Bruno** (sustituye a Postman; no se usará Postman en este proyecto):
    - Crear el directorio **`bruno/`** en la raíz del repo como **colección Bruno** (en la app: *Open Collection* → elegir esa carpeta).
@@ -380,7 +380,7 @@ curl -F "url=https://XXX.ngrok-free.app/api/webhook" \
 
 ### Criterios de salida
 - [ ] README nuevo
-- [ ] `package.json.name = telegram-amazon-deals-bot`
+- [ ] `package.json.name = gangabot`
 - [ ] Colección Bruno en `bruno/` con estructura por rutas (`api/health`, `api/webhook`, …)
 - [ ] Commit: `docs: rebranding, README y colección Bruno`
 
@@ -420,7 +420,7 @@ git tag milestone/cleanup-complete
 ## Estructura esperada al final de la limpieza
 
 ```
-TelegramAmazon/
+GangaBot/   (nombre lógico del repo / carpeta raíz)
 ├── docs/
 │   └── varios/
 │       ├── plan-inicial.md

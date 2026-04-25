@@ -1,13 +1,13 @@
-# Bot de Telegram — ofertas Amazon (NestJS)
+# Ganga Bot
 
-Backend NestJS + PostgreSQL para un bot que publica ofertas de Amazon con enlaces de afiliado. La Mini App Angular del proyecto anterior fue eliminada; el foco es el webhook de Telegram y la publicación en canal.
+Backend **NestJS** + **PostgreSQL** para **Ganga Bot**: bot de Telegram que publica ofertas de Amazon con enlaces de afiliado. Dominio del proyecto: **[gangabot.com](https://gangabot.com)**.
 
 ## Requisitos
 
 - **Node.js** 22.x (ver `.nvmrc`)
 - **Yarn** 1.x
-- **PostgreSQL** 14+ (local recomendado vía Docker)
-- Cuenta de **Amazon Afiliados**, canal de Telegram, bot creado con [@BotFather](https://t.me/BotFather), y (más adelante) API **Keepa** u otras fuentes de ofertas según el roadmap
+- **PostgreSQL** 14+ (local recomendado vía Docker; base por defecto: **`gangabot`**)
+- Cuenta de **Amazon Afiliados**, canal de Telegram, bot con [@BotFather](https://t.me/BotFather), y (más adelante) API **Keepa** según el roadmap
 
 ## Configuración local
 
@@ -23,7 +23,7 @@ Backend NestJS + PostgreSQL para un bot que publica ofertas de Amazon con enlace
    cp .env.template .env
    ```
 
-   Rellenar al menos `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET`, credenciales de Postgres y, cuando toque publicar en canal, `TELEGRAM_CHANNEL_ID` y `TELEGRAM_ADMIN_CHAT_ID` (chat numérico del admin para comandos reservados).
+   Rellenar al menos `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET`, credenciales de Postgres (`DB_NAME=gangabot` por defecto) y, cuando publiques en canal, `TELEGRAM_CHANNEL_ID` y `TELEGRAM_ADMIN_CHAT_ID`.
 
 3. Levantar Postgres:
 
@@ -31,9 +31,9 @@ Backend NestJS + PostgreSQL para un bot que publica ofertas de Amazon con enlace
    docker compose up -d
    ```
 
-   El nombre de la base debe coincidir con `DB_NAME` (por defecto en la plantilla: `telegram_amazon`). Si cambias `DB_NAME` respecto a una base anterior, puede hacer falta recrear el volumen (`docker compose down -v`).
+   El contenedor se llama **`gangabot-postgres`**. El nombre de la base debe coincidir con `DB_NAME` (plantilla: **`gangabot`**). Si cambias `DB_NAME` respecto a una base anterior, puede hacer falta recrear el volumen (`docker compose down -v`).
 
-   Postgres del `docker-compose` escucha en el host en el puerto **30432** (`30432:5432`); en `.env` usa `DB_PORT=30432`. Si aún hubiera conflicto, cambia ambos (compose + `.env`) a otro puerto libre.
+   Postgres del `docker-compose` escucha en el host en el puerto **30432** (`30432:5432`); en `.env` usa `DB_PORT=30432`. Si hubiera conflicto, cambia ambos (compose + `.env`) a otro puerto libre.
 
 4. Arrancar la API en desarrollo (puerto por defecto **3020** si no defines `PORT`):
 
@@ -41,42 +41,42 @@ Backend NestJS + PostgreSQL para un bot que publica ofertas de Amazon con enlace
    yarn start:dev
    ```
 
-5. **Webhook con ngrok** (ejemplo):
+5. **Webhook** en local con ngrok (ejemplo):
 
    ```bash
    ngrok http 3020
    ```
 
-   Registrar el webhook (sustituye URL y token):
+   En **producción** el webhook debería apuntar a tu API pública, p. ej. `https://gangabot.com/api/webhook` o `https://api.gangabot.com/api/webhook` según cómo montes DNS y proxy.
 
    ```bash
-   curl -F "url=https://TU_SUBDOMINIO.ngrok-free.app/api/webhook" \
+   curl -F "url=https://TU_TUNEL.ngrok-free.app/api/webhook" \
         -F "secret_token=TU_TELEGRAM_WEBHOOK_SECRET" \
         "https://api.telegram.org/bot<TU_TELEGRAM_BOT_TOKEN>/setWebhook"
    ```
 
-6. Comprobar salud del servicio: `GET http://localhost:3020/api/health`
+6. Comprobar salud: `GET http://localhost:3020/api/health`
 
 ## Colección Bruno
 
-Las peticiones HTTP de ejemplo están en la carpeta **`bruno/`**. En [Bruno](https://www.usebruno.com/), *Open Collection* y elige esa carpeta. El entorno `environments/local.bru` define `baseUrl` y `webhookSecret` para las pruebas del webhook.
+Las peticiones HTTP de ejemplo están en **`bruno/`** (colección nombrada **Ganga Bot**). En [Bruno](https://www.usebruno.com/), *Open Collection* y elige esa carpeta. El entorno `environments/local.bru` define `baseUrl` y `webhookSecret`.
 
 ## Variables de entorno
 
-Resumen (la referencia completa está en `.env.template`):
+Resumen (detalle en `.env.template`):
 
 | Área | Variables |
 |------|-----------|
-| Entorno | `STAGE`, `PORT` |
-| Base de datos | `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` |
+| App | `STAGE`, `PORT`, `APP_PUBLIC_URL` (p. ej. `https://gangabot.com`) |
+| Base de datos | `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` (`gangabot`) |
 | Telegram | `TELEGRAM_API_URL`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET`, `TELEGRAM_CHANNEL_ID`, `TELEGRAM_ADMIN_CHAT_ID` |
-| Amazon / APIs | `AMAZON_*`, `KEEPA_*`, `PAAPI_*` (uso previsto en la fase de implementación) |
+| Amazon / APIs | `AMAZON_*`, `KEEPA_*`, `PAAPI_*` |
 
 ## Roadmap
 
-- Visión general: `docs/varios/plan-inicial.md`
-- Limpieza y fases ya aplicadas: `docs/varios/plan-limpieza.md`
-- Dominio Amazon (ofertas, Keepa, publicador): `docs/varios/plan-implementacion.md` *(cuando exista)*
+- Visión de negocio: `docs/varios/plan-inicial.md`
+- Limpieza del repo: `docs/varios/plan-limpieza.md`
+- Implementación técnica (Ganga Bot): `docs/varios/plan-implementacion.md`
 
 ## Scripts útiles
 
