@@ -1,11 +1,10 @@
-version: '3'
-
 services:
   db:
     image: postgres:14.3
     restart: always
     ports:
-      - "5432:5432"
+      # Puerto alto en el host para evitar choques con 5432/5433 u otros Postgres locales
+      - "30432:5432"
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}

@@ -33,6 +33,8 @@ Backend NestJS + PostgreSQL para un bot que publica ofertas de Amazon con enlace
 
    El nombre de la base debe coincidir con `DB_NAME` (por defecto en la plantilla: `telegram_amazon`). Si cambias `DB_NAME` respecto a una base anterior, puede hacer falta recrear el volumen (`docker compose down -v`).
 
+   Postgres del `docker-compose` escucha en el host en el puerto **30432** (`30432:5432`); en `.env` usa `DB_PORT=30432`. Si aún hubiera conflicto, cambia ambos (compose + `.env`) a otro puerto libre.
+
 4. Arrancar la API en desarrollo (puerto por defecto **3020** si no defines `PORT`):
 
    ```bash
