@@ -12,9 +12,9 @@
 4. Cambiar las variables de entorno
 5. Levantar la base de datos en docker: ```docker compose up -d```
 6. Ejecutar el SEED para llamar la base de datos:
-  ```http://localhost:3000/api/seed```
+  ```http://localhost:3020/api/seed```
 7. Levantar el modo desarrollo ```yarn start:dev```
-8. Establecer el puente con ngrok para recibir las notificaciones de telegram: ```ngrok http http://localhost:3000```
+8. Establecer el puente con ngrok para recibir las notificaciones de telegram: ```ngrok http http://localhost:3020```
 9. Una vez establecido la conexión con ngrok, cambiar la variable WEBAPP_URL del .env con la url que proporcione ngrok
 10. Establecer el webhook de telegram con el ngrok. Cambiar el valor url con la que proporciona ngrok: 
   ```

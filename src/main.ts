@@ -43,7 +43,7 @@ async function bootstrap () {
     const documentFactory = () => SwaggerModule.createDocument( app, config );
     SwaggerModule.setup( 'api', app, documentFactory );
 
-    const port = process.env.PORT || 3000;
+    const port = process.env.PORT || 3020;
     await app.listen( port );
     logger.log( `Application is running on port: ${ port }` );
     logger.log( `Health check available at: http://localhost:${ port }/health` );

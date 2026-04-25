@@ -15,7 +15,7 @@
 | [Fase 2](#fase-2--eliminación-del-dominio-dating-backend) | Borrar módulos `auth`, `profile`, `location`, `file`, datos `seed` | Nest compila con `common + webhook + send-message` |
 | [Fase 3](#fase-3--limpieza-de-dependencias-y-config) | `package.json`, `.env`, scripts, README | Instalación limpia y `.env` nuevo |
 | [Fase 4](#fase-4--adaptación-del-núcleo-reutilizable) | Refactor de `webhook` y `send-message` eliminando acoplamiento a Auth/WebApp | Bot responde `/start` sin dating |
-| [Fase 5](#fase-5--rebranding-y-documentación) | Renombrar proyecto, README nuevo, Postman nuevo | Proyecto presentable |
+| [Fase 5](#fase-5--rebranding-y-documentación) | Renombrar proyecto, README nuevo, colección Bruno | Proyecto presentable |
 | [Fase 6](#fase-6--verificación-final-y-merge) | Smoke tests, webhook real, merge a `main` | Base lista para construir el dominio Amazon |
 
 > ⚠️ **Importante**: este documento cubre **solo la limpieza**. La implementación del nuevo dominio (módulos `amazon`, `keepa`, `deals`, `publisher`, `scheduler`) se abordará en un **plan posterior** (`plan-implementacion.md`).
@@ -221,7 +221,7 @@ Reescribir con las variables necesarias (las que no se sepan aún, dejarlas vac�
 ```env
 # --- Entorno ---
 STAGE=dev
-PORT=3000
+PORT=3020
 
 # --- Base de datos ---
 DB_HOST=localhost
@@ -321,7 +321,7 @@ yarn build
 ```bash
 yarn start:dev
 # en otra terminal
-ngrok http 3000
+ngrok http 3020
 # registrar webhook apuntando a la URL de ngrok
 curl -F "url=https://XXX.ngrok-free.app/api/webhook" \
      -F "secret_token=$TELEGRAM_WEBHOOK_SECRET" \
@@ -347,14 +347,28 @@ curl -F "url=https://XXX.ngrok-free.app/api/webhook" \
    - Descripción (bot Telegram de ofertas Amazon con afiliados).
    - Requisitos (Node 22, Postgres, cuenta afiliados Amazon, canal Telegram, bot Telegram, Keepa API).
    - Setup local (`yarn install`, `.env`, `docker compose up -d`, `yarn start:dev`, `ngrok`, `setWebhook`).
+   - **Pruebas HTTP con [Bruno](https://www.usebruno.com/)**: abrir la carpeta `bruno/` como colección (no Postman).
    - Variables de entorno documentadas.
    - Roadmap (enlazar `plan-inicial.md` y el futuro `plan-implementacion.md`).
 
 2. **`package.json`**: `name`, `description`, `repository`, `keywords` (`telegram`, `amazon`, `affiliates`, `bot`, `nestjs`).
 
-3. **Postman**: borrar colección antigua de dating en `postman/` y crear una nueva mínima con:
-   - Health check
-   - Webhook de Telegram (simulación `/start`)
+3. **Bruno** (sustituye a Postman; no se usará Postman en este proyecto):
+   - Crear el directorio **`bruno/`** en la raíz del repo como **colección Bruno** (en la app: *Open Collection* → elegir esa carpeta).
+   - Incluir `bruno.json` en la raíz de `bruno/` (metadatos de la colección).
+   - Organizar **subcarpetas que reflejen las rutas del API** (prefijo global `api` de Nest), con **un archivo `.bru` por endpoint**:
+     ```
+     bruno/
+     ├── bruno.json
+     ├── environments/              # opcional: local.bru con {{baseUrl}}, secretos de prueba
+     ├── api/
+     │   ├── health/
+     │   │   └── get-health.bru     # GET {{baseUrl}}/api/health
+     │   └── webhook/
+     │       └── post-telegram-update.bru   # POST {{baseUrl}}/api/webhook — cuerpo tipo Update de Telegram (ej. mensaje /start)
+     ```
+   - Criterio: cada ruta HTTP queda bajo `bruno/api/...` siguiendo el path (`health`, `webhook`, y en el futuro lo que añada el dominio Amazon).
+   - Si existe la carpeta `postman/` del proyecto dating, **eliminarla** o archivarla fuera del repo; no mantener colecciones Postman.
 
 4. **`.vscode/`**: revisar que no apunte a rutas del proyecto Angular.
 
@@ -367,8 +381,8 @@ curl -F "url=https://XXX.ngrok-free.app/api/webhook" \
 ### Criterios de salida
 - [ ] README nuevo
 - [ ] `package.json.name = telegram-amazon-deals-bot`
-- [ ] Postman colección nueva
-- [ ] Commit: `docs: rebranding a bot de ofertas Amazon`
+- [ ] Colección Bruno en `bruno/` con estructura por rutas (`api/health`, `api/webhook`, …)
+- [ ] Commit: `docs: rebranding, README y colección Bruno`
 
 ---
 
@@ -441,7 +455,7 @@ TelegramAmazon/
 │       ├── message-welcome.html   (reescrito)
 │       └── deal.html              (placeholder nuevo)
 ├── test/
-├── postman/                      (colección nueva)
+├── bruno/                        (colección Bruno: bruno.json + api/<ruta>/<endpoint>.bru)
 ├── docker-compose.yaml
 ├── nixpacks.toml
 ├── railway.json
