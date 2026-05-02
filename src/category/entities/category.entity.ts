@@ -16,6 +16,6 @@ export class Category {
 	@Column()
 	hashtag: string;
 
-	@Column( { type: 'varchar', nullable: true } )
+	@Column( { type: 'varchar', nullable: true, name: 'amazon_node_id' } )
 	amazonNodeId: string | null;
 }

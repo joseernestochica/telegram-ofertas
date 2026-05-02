@@ -15,11 +15,11 @@ export class DealEvent {
 	@PrimaryGeneratedColumn( 'uuid' )
 	id: string;
 
-	@Column( { type: 'uuid' } )
+	@Column( { type: 'uuid', name: 'deal_id' } )
 	dealId: string;
 
 	@ManyToOne( () => Deal, ( deal ) => deal.events, { onDelete: 'CASCADE' } )
-	@JoinColumn( { name: 'dealId' } )
+	@JoinColumn( { name: 'deal_id' } )
 	deal: Deal;
 
 	@Column( { type: 'varchar', length: 32 } )
@@ -28,6 +28,6 @@ export class DealEvent {
 	@Column( { type: 'jsonb', nullable: true } )
 	metadata: Record<string, unknown> | null;
 
-	@CreateDateColumn( { type: 'timestamptz' } )
+	@CreateDateColumn( { type: 'timestamptz', name: 'created_at' } )
 	createdAt: Date;
 }
