@@ -41,21 +41,56 @@ Backend **NestJS** + **PostgreSQL** para **Ganga Bot**: bot de Telegram que publ
    yarn start:dev
    ```
 
-5. **Webhook** en local con ngrok (ejemplo):
+5. Comprobar salud local: `GET http://localhost:3020/api/health`
+
+### Webhook de Telegram en local con ngrok
+
+Telegram solo puede enviar updates a una URL **HTTPS pública**. En tu máquina usas **ngrok** para exponer el puerto donde corre Nest (p. ej. **3020**).
+
+**Prerrequisitos:** `.env` con `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET` (el mismo valor usarás en `setWebhook`), API ya arrancada con `yarn start:dev`.
+
+1. **Terminal 1 — Nest** (déjala abierta):
+
+   ```bash
+   yarn start:dev
+   ```
+
+2. **Terminal 2 — túnel ngrok** hacia el mismo puerto que usa Nest:
 
    ```bash
    ngrok http 3020
    ```
 
-   En **producción** el webhook debería apuntar a tu API pública, p. ej. `https://gangabot.com/api/webhook` o `https://api.gangabot.com/api/webhook` según cómo montes DNS y proxy.
+   Si tu `PORT` en `.env` es otro, sustituye `3020` por ese valor.
+
+3. En la salida de ngrok, copia la URL **HTTPS** de **Forwarding** (ej. `https://abcd-12-34-56.ngrok-free.app`). En el plan gratuito la URL **cambia** al reiniciar ngrok.
+
+4. **Registrar el webhook** en Telegram (una línea; sustituye la URL del túnel y los secretos):
 
    ```bash
-   curl -F "url=https://TU_TUNEL.ngrok-free.app/api/webhook" \
+   curl -F "url=https://TU_SUBDOMINIO.ngrok-free.app/api/webhook" \
         -F "secret_token=TU_TELEGRAM_WEBHOOK_SECRET" \
         "https://api.telegram.org/bot<TU_TELEGRAM_BOT_TOKEN>/setWebhook"
    ```
 
-6. Comprobar salud: `GET http://localhost:3020/api/health`
+   - La ruta debe ser exactamente **`/api/webhook`** (Nest usa prefijo global `api` y el controlador `webhook`).
+   - `secret_token` debe coincidir carácter a carácter con **`TELEGRAM_WEBHOOK_SECRET`** del `.env`.
+
+5. **Comprobar** que Telegram tiene bien la URL:
+
+   ```bash
+   curl -s "https://api.telegram.org/bot<TU_TELEGRAM_BOT_TOKEN>/getWebhookInfo"
+   ```
+
+   Revisa que `url` sea tu `https://…/api/webhook` y que `last_error_message` esté vacío o sin errores recientes.
+
+6. **Probar:** en Telegram, chat **privado** con **`@ganga_ofertas_bot`**, envía **`/start`**. En la terminal de Nest deberían verse logs; el bot debe responder según `WebhookService` / plantilla de bienvenida.
+
+**Notas:**
+
+- Tras **parar o reiniciar** ngrok, la URL HTTPS suele cambiar: vuelve a ejecutar el **`curl` de `setWebhook`** con la nueva URL.
+- Si ngrok pide autenticación: `ngrok config add-authtoken <token>` (cuenta gratuita en [dashboard.ngrok.com](https://dashboard.ngrok.com)).
+- Cuando despliegues en **producción**, sustituye la URL de ngrok por tu dominio (p. ej. `https://gangabot.com/api/webhook`) y registra de nuevo el webhook.
 
 ## Colección Bruno
 
