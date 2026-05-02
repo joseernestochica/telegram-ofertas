@@ -44,5 +44,10 @@ export class HandleErrorService {
 		throw new ForbiddenException( message );
 	}
 
+	handleInternalServerErrorException ( message: string ): never {
+		this.logger.error( message );
+		throw new InternalServerErrorException( message );
+	}
+
 }
 

@@ -10,8 +10,8 @@ import { DealModule } from './deal/deal.module';
 import { AppController } from './app.controller';
 
 @Module( {
-	imports: [
-		ConfigModule.forRoot(),
+		imports: [
+		ConfigModule.forRoot( { isGlobal: true } ),
 		TypeOrmModule.forRoot( {
 			ssl: process.env.STAGE === 'prod',
 			extra: {

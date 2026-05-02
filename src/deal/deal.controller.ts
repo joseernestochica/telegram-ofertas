@@ -7,8 +7,10 @@ import {
 	Patch,
 	Post,
 	Query,
+	UseGuards,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiHeader, ApiTags } from '@nestjs/swagger';
+import { ApiKeyGuard } from '../common/guards/api-key.guard';
 import { GetResponse } from '../common/interfaces/get-response.interface';
 import { buildGetResponse } from '../common/utils/get-response.util';
 import { ListDealsQueryDto } from './dto/list-deals-query.dto';
@@ -38,6 +40,8 @@ export class DealController {
 	}
 
 	@Post( 'upsert' )
+	@ApiHeader( { name: 'x-api-key', required: false, description: 'Opcional si usas Authorization Bearer' } )
+	@UseGuards( ApiKeyGuard )
 	async upsert (
 		@Body() dto: UpsertDealDto,
 	): Promise<GetResponse<Deal>> {
@@ -46,6 +50,8 @@ export class DealController {
 	}
 
 	@Patch( ':id/published' )
+	@ApiHeader( { name: 'x-api-key', required: false, description: 'Opcional si usas Authorization Bearer' } )
+	@UseGuards( ApiKeyGuard )
 	async markPublished (
 		@Param( 'id', new ParseUUIDPipe( { version: '4' } ) ) id: string,
 	): Promise<GetResponse<Deal>> {
@@ -54,6 +60,8 @@ export class DealController {
 	}
 
 	@Patch( ':id/skipped' )
+	@ApiHeader( { name: 'x-api-key', required: false, description: 'Opcional si usas Authorization Bearer' } )
+	@UseGuards( ApiKeyGuard )
 	async markSkipped (
 		@Param( 'id', new ParseUUIDPipe( { version: '4' } ) ) id: string,
 	): Promise<GetResponse<Deal>> {

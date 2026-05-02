@@ -31,3 +31,7 @@ alwaysApply: true
 ## Imports
 
 - Importar `GetResponse` desde `interfaces`; no duplicar la forma del JSON en tipos sueltos salvo tests.
+
+## Seguridad de escritura
+
+- Rutas **POST**, **PATCH** y rutas **`/seed`** van protegidas con `ApiKeyGuard` (`Authorization: Bearer <API_KEY>` o `x-api-key`). Variables sensibles en `.env.template` (`API_KEY`). Lectura (`GET` salvo seed), raíz, `health` y **webhook Telegram** (secreto propio) siguen públicos respecto a esta clave.
