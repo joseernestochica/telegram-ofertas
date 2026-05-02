@@ -5,6 +5,8 @@ import { CommonModule } from './common/common.module';
 import { SeedModule } from './seed/seed.module';
 import { WebhookModule } from './webhook/webhook.module';
 import { SendMessageModule } from './send-message/send-message.module';
+import { CategoryModule } from './category/category.module';
+import { DealModule } from './deal/deal.module';
 import { AppController } from './app.controller';
 
 @Module( {
@@ -27,6 +29,8 @@ import { AppController } from './app.controller';
 			synchronize: true,
 		} ),
 		CommonModule,
+		CategoryModule,
+		DealModule,
 		SeedModule,
 		WebhookModule,
 		SendMessageModule,

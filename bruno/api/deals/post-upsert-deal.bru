@@ -1,0 +1,28 @@
+meta {
+  name: Ganga Bot — POST upsert deal
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/api/deals/upsert
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "asin": "B0XXXXXXXX",
+    "title": "Producto de prueba Ganga Bot",
+    "imageUrl": null,
+    "categoryId": null,
+    "currency": "EUR",
+    "oldPrice": 99.99,
+    "newPrice": 49.99,
+    "discountPct": 50,
+    "affiliateUrl": "https://www.amazon.es/dp/B0XXXXXXXX?tag=gangabot06-21",
+    "source": "manual",
+    "status": "PENDING",
+    "externalPayload": { "note": "Bruno" }
+  }
+}

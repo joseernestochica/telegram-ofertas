@@ -1,7 +1,8 @@
 import { Controller, Post, Body, Headers, HttpCode } from '@nestjs/common';
-import { WebhookService } from './webhook.service';
 import { ApiTags } from '@nestjs/swagger';
+import { GetResponse } from '../common/interfaces/get-response.interface';
 import { WebhookUpdateDto } from './dto';
+import { WebhookService } from './webhook.service';
 
 @ApiTags( 'Webhook' )
 @Controller( 'webhook' )
@@ -13,11 +14,11 @@ export class WebhookController {
 
 	@Post()
 	@HttpCode( 200 )
-	async handleWebhook (
-		@Body() update: any,
+	handleWebhook (
+		@Body() update: WebhookUpdateDto,
 		@Headers( 'x-telegram-bot-api-secret-token' ) secretToken: string
-	) {
+	): Promise<GetResponse<{ ok: boolean }>> {
 		return this.webhookService.handleUpdate( update, secretToken );
 	}
 
-} 
+}

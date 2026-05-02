@@ -1,6 +1,8 @@
 import { Controller, Get } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
+import { GetResponse } from './common/interfaces/get-response.interface';
+import { buildGetResponse } from './common/utils/get-response.util';
 
 @Controller()
 export class AppController {
@@ -10,26 +12,25 @@ export class AppController {
 	) { }
 
 	@Get()
-	getHello (): string {
-		return 'Hello World!';
+	getHello (): GetResponse<string> {
+		return buildGetResponse( 'Hello World!' );
 	}
 
 	@Get( 'health' )
-	async getHealth (): Promise<{ status: string; timestamp: string; database: string }> {
+	async getHealth (): Promise<GetResponse<{ status: string; timestamp: string; database: string }>> {
 		let dbStatus = 'unknown';
 
 		try {
-			// Verificar conexión a la base de datos
 			await this.dataSource.query( 'SELECT 1' );
 			dbStatus = 'connected';
-		} catch ( error ) {
+		} catch {
 			dbStatus = 'disconnected';
 		}
 
-		return {
+		return buildGetResponse( {
 			status: 'ok',
 			timestamp: new Date().toISOString(),
 			database: dbStatus,
-		};
+		} );
 	}
-} 
+}

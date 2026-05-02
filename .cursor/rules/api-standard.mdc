@@ -1,0 +1,33 @@
+---
+description: Estándar de respuestas API (GetResponse), query (GetParams) y errores (HandleErrorService)
+globs: src/**/*.ts
+alwaysApply: true
+---
+
+# API Ganga Bot — contrato de salida, query y errores
+
+## Respuestas exitosas: `GetResponse<T>`
+
+- Toda respuesta JSON de la API debe seguir `src/common/interfaces/get-response.interface.ts`.
+- Construir con `buildGetResponse()` desde `src/common/utils/get-response.util.ts`.
+- Listados: rellenar `data` (array), `total`, `page`, `lastPage` cuando aplique paginación; `statusCode: 200` queda en el helper.
+- Recurso único: `data` como objeto; metadatos opcionales con `message` si hace falta.
+- **No** envolver en `GetResponse` los cuerpos de error HTTP: Nest mantiene el formato estándar de excepciones.
+
+## Query y listados: alineado con `GetParams`
+
+- La forma canónica está en `src/common/interfaces/get-params.interface.ts` (`page`, `limit`, `where`, `sort`, etc.).
+- En la práctica, exponer DTOs con `class-validator` que extiendan o reutilicen `PaginationQueryDto` (`src/common/dto/pagination-query.dto.ts`) y añadir campos tipados por dominio (p. ej. `status` en deals). Evita duplicar `page`/`limit` sin validación.
+
+## Bodies
+
+- Los cuerpos `POST`/`PATCH` siguen siendo **DTOs propios** por endpoint/módulo.
+
+## Errores: `HandleErrorService`
+
+- Errores de negocio y de persistencia en **servicios** deben pasar por `src/common/services/handle-error.service.ts` (`handleNotFoundException`, `handleBadRequestException`, `handleDBException`, `handleForbiddenException`, `handleUnautorizedException`, etc.), no lanzar excepciones Nest a mano en la lógica salvo casos muy localizados.
+- Mantener el **ValidationPipe global** para entrada; los 400 de validación siguen siendo los que genera Nest.
+
+## Imports
+
+- Importar `GetResponse` desde `interfaces`; no duplicar la forma del JSON en tipos sueltos salvo tests.
