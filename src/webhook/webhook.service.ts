@@ -1,12 +1,13 @@
 import { HandleErrorService } from 'src/common/services';
 import { ConfigService } from '@nestjs/config';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { SendMessageService } from '../send-message/send-message.service';
 import { WebhookCallbackQueryDto, WebhookMessageDto, WebhookUpdateDto } from './dto';
 
 @Injectable()
 export class WebhookService {
 
+	private readonly logger = new Logger( WebhookService.name );
 	private readonly webhookSecret: string;
 	private readonly adminChatId: string | undefined;
 
@@ -20,6 +21,8 @@ export class WebhookService {
 	}
 
 	async handleUpdate ( update: WebhookUpdateDto, secretToken: string ) {
+
+		this.logger.log( `Webhook update_id=${ update.update_id }` );
 
 		if ( secretToken !== this.webhookSecret ) {
 			this.handleErrorService.handleUnautorizedException( 'Invalid webhook secret token' );
@@ -44,6 +47,7 @@ export class WebhookService {
 
 		const text = message.text?.trim();
 		const chatId = message.chat.id;
+		this.logger.log( `Message chatId=${ chatId } text=${ JSON.stringify( text ) }` );
 
 		if ( text === '/start' ) {
 			await this.sendMessageService.sendWelcomeFromTemplate( chatId );
