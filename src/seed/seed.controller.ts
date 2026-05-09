@@ -38,4 +38,24 @@ export class SeedController {
 		const payload = await this.seedService.runSeed();
 		return buildGetResponse( payload );
 	}
+
+	/**
+	 * Inserta ~100 `Deal` de demo repartidos entre categorías (requiere categorías sembradas).
+	 * Idempotente por ASIN (re-ejecución solo incrementa `skipped`).
+	 */
+	@Get( 'demo-deals' )
+	@ApiHeader( { name: 'x-api-key', required: false, description: 'Opcional si usas Authorization Bearer' } )
+	@UseGuards( ApiKeyGuard )
+	async seedDemoDeals (): Promise<GetResponse<{
+		inserted: number;
+		skipped: number;
+		requested: number;
+		categoriesUsed: number;
+	}>> {
+		if ( process.env.STAGE === 'prod' ) {
+			this.handleErrorService.handleForbiddenException( 'No disponible en producción' );
+		}
+		const payload = await this.seedService.seedDemoDeals();
+		return buildGetResponse( payload );
+	}
 }

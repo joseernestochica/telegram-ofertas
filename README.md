@@ -92,6 +92,16 @@ Telegram solo puede enviar updates a una URL **HTTPS pública**. En tu máquina 
 - Si ngrok pide autenticación: `ngrok config add-authtoken <token>` (cuenta gratuita en [dashboard.ngrok.com](https://dashboard.ngrok.com)).
 - Cuando despliegues en **producción**, sustituye la URL de ngrok por tu dominio (p. ej. `https://gangabot.com/api/webhook`) y registra de nuevo el webhook.
 
+**Webhook y Bruno:** si haces `POST /api/webhook` desde Bruno con un `chat.id` inventado, **`sendMessage` fallará** (Telegram responde 400: chat inexistente o usuario sin haber abierto el bot). Obtén tu **`chat_id` real** hablando al bot en Telegram y mirando `getUpdates`, o usa el mismo número en `message.chat.id` y `message.from.id` del payload de prueba (`bruno/environments/local.bru` → `webhookChatId`). La respuesta de error del API ahora incluye el texto que devuelve Telegram (p. ej. *Bad Request: chat not found*).
+
+**Si `/start` no hace nada y ngrok marca 400:** suele ser el **ValidationPipe** rechazando el JSON de Telegram (campos extra como `entities`). El proyecto usa `whitelist` sin `forbidNonWhitelisted` para que Telegram pueda enviar updates completos; los campos no declarados en el DTO se ignoran.
+
+**Ver tu `chat_id`:** con el bot en marcha, en el navegador (sustituye el token):
+
+`https://api.telegram.org/bot<TU_TELEGRAM_BOT_TOKEN>/getUpdates`
+
+Busca `message.chat.id` en la última actualización (chat privado = tu usuario).
+
 ## Colección Bruno
 
 Las peticiones HTTP de ejemplo están en **`bruno/`** (colección nombrada **Ganga Bot**). En [Bruno](https://www.usebruno.com/), *Open Collection* y elige esa carpeta. El entorno `environments/local.bru` define `baseUrl` y `webhookSecret`.

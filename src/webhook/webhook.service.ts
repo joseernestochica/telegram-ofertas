@@ -50,7 +50,9 @@ export class WebhookService {
 
 		const text = message.text?.trim();
 		const chatId = message.chat.id;
-		this.logger.log( `Message chatId=${ chatId } text=${ JSON.stringify( text ) }` );
+		this.logger.log(
+			`chat_id=${ message.chat.id } user_id=${ message.from?.id } text=${ JSON.stringify( text ) }`,
+		);
 
 		if ( text === '/start' ) {
 			await this.sendMessageService.sendWelcomeFromTemplate( chatId );

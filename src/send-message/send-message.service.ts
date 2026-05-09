@@ -24,6 +24,22 @@ export class SendMessageService {
 		this.channelId = this.configService.get<string>( 'TELEGRAM_CHANNEL_ID' );
 	}
 
+	private formatTelegramHttpError ( error: unknown ): string {
+		const axiosLike = error as {
+			response?: { data?: { description?: string; error_code?: number } };
+			message?: string;
+		};
+		const desc = axiosLike.response?.data?.description;
+		const code = axiosLike.response?.data?.error_code;
+		if ( desc ) {
+			return `Telegram API: ${ desc }${ code != null ? ` (código ${ code })` : '' }`;
+		}
+		if ( error instanceof Error ) {
+			return error.message;
+		}
+		return String( error );
+	}
+
 	async sendText (
 		chatId: number | string,
 		html: string,
@@ -39,9 +55,10 @@ export class SendMessageService {
 					...extra,
 				} ),
 			);
-		} catch ( error: any ) {
-			this.logger.error( `sendText: ${ JSON.stringify( error.response?.data || error.message ) }` );
-			this.handleErrorService.handleBadRequestException( error );
+		} catch ( error: unknown ) {
+			const detail = this.formatTelegramHttpError( error );
+			this.logger.error( `sendText: ${ detail }` );
+			this.handleErrorService.handleBadRequestException( detail );
 		}
 	}
 
@@ -62,9 +79,10 @@ export class SendMessageService {
 					...extra,
 				} ),
 			);
-		} catch ( error: any ) {
-			this.logger.error( `sendPhoto: ${ JSON.stringify( error.response?.data || error.message ) }` );
-			this.handleErrorService.handleBadRequestException( error );
+		} catch ( error: unknown ) {
+			const detail = this.formatTelegramHttpError( error );
+			this.logger.error( `sendPhoto: ${ detail }` );
+			this.handleErrorService.handleBadRequestException( detail );
 		}
 	}
 

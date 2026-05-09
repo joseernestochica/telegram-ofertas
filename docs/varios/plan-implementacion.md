@@ -32,6 +32,7 @@
 | [Fase H](#fase-h--migración-a-pa-api-50)                   | Cuando haya 3 ventas cualificadas, conectar Amazon PA-API               | Fuente oficial + fallback a Keepa                       |
 | [Fase I](#fase-i--despliegue-hosting-y-ci)                 | Deploy en hosting barato + webhook productivo + backups                 | Bot corriendo 24/7                                      |
 | [Fase J](#fase-j--operación-y-mejoras)                     | Rutina diaria, A/B de copys, categorías con mejor conversión            | Iteración continua                                      |
+| [Fase K](#fase-k--limpieza-y-retención-de-datos-en-bd)     | Retención, expiración y purga de datos antiguos en `Deal` / `DealEvent` | BD acotada; jobs de housekeeping                       |
 
 
 ---
@@ -555,6 +556,37 @@ Ampliar `AppController` para comprobar:
 
 ---
 
+## Fase K — Limpieza y retención de datos en BD
+
+**Objetivo**: evitar que `deal` y `deal_event` crezcan sin límite (ingestor Keepa, pruebas, seeds) y mantener consultas rápidas.
+
+### K.1 Política de negocio 🤖🧑‍💻
+
+- Definir **ventana de dedupe** ya mencionada (p. ej. no republicar el mismo ASIN en **N** días): solo requiere consultar filas recientes; el histórico muy antiguo puede archivarse o borrarse.
+- Estados **`EXPIRED`** / **`SKIPPED`**: criterios para marcar ofertas caducadas (precio cambió, fuera de stock, tiempo desde `publishedAt` o `detectedAt`).
+
+### K.2 Tareas automáticas 🤖
+
+- **Job programado** (`@nestjs/schedule` o cron del host): marcar como `EXPIRED` deals que cumplan reglas configurables en `.env` (p. ej. `DEAL_RETENTION_DAYS_PUBLISHED`, `DEAL_RETENTION_DAYS_PENDING`).
+- **Purge opcional**: borrado físico de filas más viejas que **M** días (solo tras backup), empezando por `deal_event` y deals en estados terminales.
+- **Índices**: mantener índices alineados con filtros del job (`status`, `detected_at`, `published_at`).
+
+### K.3 Backups 🧑‍💻
+
+- Backups de Postgres **antes** de purgas agresivas; probar restore en local.
+
+### K.4 Seeds de prueba (previo a Keepa real) 🤖
+
+- Seed HTTP **`GET /api/seed/demo-deals`** (solo `STAGE !== 'prod'`, requiere `API_KEY`): inserta **100** `Deal` de demo repartidos entre categorías (`externalPayload.demoSeed`), ASIN únicos `B000000001`… y evento `detected`. Ejecutar **después** de sembrar categorías (`GET /api/seed/categories`). Idempotente por ASIN.
+- En **producción** este endpoint debe seguir bloqueado; no mezclar datos demo con datos reales.
+
+**Criterios de salida**:
+
+- Variables de entorno documentadas para retención y límites de purge.
+- Al menos un job que marque expirados o borre por antigüedad en entorno de staging; checklist de backup antes de prod.
+
+---
+
 ## Resumen de acciones manuales (checklist rápido) 🧑‍💻
 
 - Alta en **afiliados.amazon.es** y anotar tag.
@@ -572,7 +604,7 @@ Ampliar `AppController` para comprobar:
 ## Resumen de acciones automatizables (checklist rápido) 🤖
 
 - Entidades `Category`, `Deal`, `DealEvent` + migraciones.
-- `SeedService` para categorías.
+- `SeedService` para categorías y seed opcional de deals demo (solo dev).
 - Cliente `KeepaService` + `DealIngestorService` + cron `@nestjs/schedule`.
 - `AmazonService.buildAffiliateUrl`.
 - `DealFormatterService` con plantilla `deal.html` y escape HTML.
