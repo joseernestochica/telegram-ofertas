@@ -117,7 +117,7 @@ export class DealFormatterService {
 			: '';
 
 		const clicks = Math.max( 0, deal.affiliateClickCount ?? 0 );
-		const metricsLine = `📊 <b>${ escapeTelegramHtml( formatIntegerEs( clicks ) ) }</b> clics al enlace\n\n`;
+		const metricsLine = `👁️ <b>${ escapeTelegramHtml( formatIntegerEs( clicks ) ) }</b> clics al enlace\n\n`;
 
 		let html = tpl
 			.replace( /\{\{categoryLine\}\}/g, categoryLine )
@@ -146,6 +146,7 @@ export class DealFormatterService {
 		];
 		const webUrl = publicUrl?.replace( /\/+$/, '' );
 		if ( webUrl ) {
+			/** Secundario: URL pública del proyecto (`APP_PUBLIC_URL`), p. ej. landing gangabot.com — no Amazon. */
 			inlineKeyboard.push( [
 				{
 					text: 'Abrir en la web',

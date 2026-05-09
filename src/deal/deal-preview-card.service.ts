@@ -37,6 +37,11 @@ export class DealPreviewCardService {
 			showExpiredBanner,
 		} );
 
+		const offerHref = escapeHtmlAttr( payload.trackingUrl.trim() );
+		const imgAlt = escapeTelegramHtml(
+			deal.title.trim().slice( 0, 120 ),
+		);
+
 		const filePath = path.resolve( __dirname, '../../static/tpl/deal-preview-card.html' );
 		let html = fs.readFileSync( filePath, 'utf8' );
 
@@ -57,31 +62,46 @@ export class DealPreviewCardService {
 
 		const photo = payload.photoUrl?.trim();
 		let visualBlock: string;
+		const linkAttr = `href="${ offerHref }" target="_blank" rel="noopener noreferrer"`;
+
 		if ( photo ) {
 			const src = escapeHtmlAttr( photo );
 			if ( showExpiredBanner ) {
 				visualBlock = `
 <div class="visual visual--expired">
   <span class="expired-corner">${ escapeTelegramHtml( 'Oferta finalizada' ) }</span>
-  <div class="visual-img-wrap"><img src="${ src }" alt=""/></div>
+  <div class="visual-img-wrap">
+    <a class="visual-link" ${ linkAttr }>
+      <img src="${ src }" alt="${ imgAlt }"/>
+    </a>
+  </div>
   <div class="expired-overlay"><span class="expired-pill">${ escapeTelegramHtml( 'Oferta finalizada' ) }</span></div>
 </div>`.trim();
 			} else {
 				visualBlock = `
 <div class="visual">
   <span class="badge-discount">-${ pct }%</span>
-  <img src="${ src }" alt=""/>
+  <a class="visual-link" ${ linkAttr }>
+    <img src="${ src }" alt="${ imgAlt }"/>
+  </a>
 </div>`.trim();
 			}
 		} else if ( showExpiredBanner ) {
 			visualBlock = `
 <div class="visual visual--expired">
   <span class="expired-corner">${ escapeTelegramHtml( 'Oferta finalizada' ) }</span>
-  <div class="no-img">${ escapeTelegramHtml( 'Sin imagen' ) }</div>
+  <a class="visual-link visual-link--placeholder" ${ linkAttr }>
+    <div class="no-img">${ escapeTelegramHtml( 'Sin imagen' ) }</div>
+  </a>
   <div class="expired-overlay"><span class="expired-pill">${ escapeTelegramHtml( 'Oferta finalizada' ) }</span></div>
 </div>`.trim();
 		} else {
-			visualBlock = `<div class="visual"><div class="no-img">${ escapeTelegramHtml( 'Sin imagen de producto' ) }</div></div>`;
+			visualBlock = `
+<div class="visual">
+  <a class="visual-link visual-link--placeholder" ${ linkAttr }>
+    <div class="no-img">${ escapeTelegramHtml( 'Sin imagen de producto' ) }</div>
+  </a>
+</div>`.trim();
 		}
 
 		const titleHtml = `<h2 class="title">${ escapeTelegramHtml( deal.title.trim() ) }</h2>`;
@@ -128,7 +148,7 @@ export class DealPreviewCardService {
 
 		const clicks = Math.max( 0, deal.affiliateClickCount ?? 0 );
 		const clicksHtml = `
-<div class="clicks-row">📊 <strong>${ escapeTelegramHtml( formatIntegerEs( clicks ) ) }</strong> clics al enlace</div>`.trim();
+<div class="clicks-row">👁️ <strong>${ escapeTelegramHtml( formatIntegerEs( clicks ) ) }</strong> clics al enlace</div>`.trim();
 
 		const infoExpired = showExpiredBanner
 			? `<div class="info-expired">${ escapeTelegramHtml(

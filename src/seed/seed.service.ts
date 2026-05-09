@@ -7,6 +7,7 @@ import { Deal } from '../deal/entities/deal.entity';
 import { DealEventType } from '../deal/entities/deal.enums';
 import { HandleErrorService } from '../common/services/handle-error.service';
 import { CategoryService } from '../category/category.service';
+import { AmazonService } from '../amazon/amazon.service';
 import {
 	buildDemoDeal,
 	DEFAULT_DEMO_DEALS_TOTAL,
@@ -18,6 +19,7 @@ export class SeedService {
 
 	constructor (
 		private readonly categoryService: CategoryService,
+		private readonly amazonService: AmazonService,
 		private readonly handleErrorService: HandleErrorService,
 		@InjectRepository( Category )
 		private readonly categoryRepository: Repository<Category>,
@@ -65,7 +67,8 @@ export class SeedService {
 					globalIndex += 1;
 					continue;
 				}
-				const entity = this.dealRepository.create( row );
+				const affiliateUrl = this.amazonService.buildAffiliateUrl( row.asin );
+				const entity = this.dealRepository.create( { ...row, affiliateUrl } );
 				const saved = await this.dealRepository.save( entity );
 				await this.dealEventRepository.insert( {
 					dealId: saved.id,

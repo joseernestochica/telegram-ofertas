@@ -2,6 +2,7 @@ import { HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { GetResponse } from '../common/interfaces/get-response.interface';
+import { AmazonService } from '../amazon/amazon.service';
 import { HandleErrorService } from '../common/services/handle-error.service';
 import { buildGetResponse } from '../common/utils/get-response.util';
 import { ListDealsQueryDto } from './dto/list-deals-query.dto';
@@ -18,6 +19,7 @@ export class DealService {
 		private readonly dealRepository: Repository<Deal>,
 		@InjectRepository( DealEvent )
 		private readonly dealEventRepository: Repository<DealEvent>,
+		private readonly amazonService: AmazonService,
 		private readonly handleErrorService: HandleErrorService,
 	) { }
 
@@ -89,6 +91,7 @@ export class DealService {
 			const currency = dto.currency ?? 'EUR';
 			const status = dto.status ?? DealStatus.PENDING;
 			const detectedAt = dto.detectedAt ?? now;
+			const affiliateUrl = this.amazonService.buildAffiliateUrl( dto.asin );
 
 			if ( !existing ) {
 				const deal = this.dealRepository.create( {
@@ -100,7 +103,7 @@ export class DealService {
 					oldPrice: dto.oldPrice,
 					newPrice: dto.newPrice,
 					discountPct: dto.discountPct,
-					affiliateUrl: dto.affiliateUrl,
+					affiliateUrl,
 					ratingStars: dto.ratingStars ?? null,
 					reviewCount: dto.reviewCount ?? null,
 					source: dto.source,
@@ -125,7 +128,7 @@ export class DealService {
 			existing.oldPrice = dto.oldPrice;
 			existing.newPrice = dto.newPrice;
 			existing.discountPct = dto.discountPct;
-			existing.affiliateUrl = dto.affiliateUrl;
+			existing.affiliateUrl = affiliateUrl;
 			if ( dto.ratingStars !== undefined ) {
 				existing.ratingStars = dto.ratingStars;
 			}

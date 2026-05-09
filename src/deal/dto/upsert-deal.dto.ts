@@ -46,9 +46,6 @@ export class UpsertDealDto {
 	@Max( 100 )
 	discountPct: number;
 
-	@IsString()
-	affiliateUrl: string;
-
 	@IsEnum( DealSource )
 	source: DealSource;
 

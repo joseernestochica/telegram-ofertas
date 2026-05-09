@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AmazonModule } from '../amazon/amazon.module';
 import { CommonModule } from '../common/common.module';
 import { SendMessageModule } from '../send-message/send-message.module';
 import { DealFormatterService } from './deal-formatter.service';
@@ -13,6 +14,7 @@ import { Deal } from './entities/deal.entity';
 
 @Module( {
 	imports: [
+		AmazonModule,
 		CommonModule,
 		SendMessageModule,
 		TypeOrmModule.forFeature( [ Deal, DealEvent ] ),

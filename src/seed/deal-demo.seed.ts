@@ -2,8 +2,6 @@ import { Deal } from '../deal/entities/deal.entity';
 import { DealSource, DealStatus } from '../deal/entities/deal.enums';
 import { Category } from '../category/entities/category.entity';
 
-const AFFILIATE_TAG = 'gangabot06-21';
-
 /** Imagen de prueba (Picsum): misma semilla → misma foto; distinta por índice. Solo desarrollo. */
 export function demoProductImageUrl ( index: number ): string {
 	const seed = encodeURIComponent( `gangabot-demo-${ index }` );
@@ -23,7 +21,7 @@ export function distributeCounts ( total: number, bucketCount: number ): number[
 export function buildDemoDeal (
 	index: number,
 	category: Category,
-): Pick<Deal, 'asin' | 'title' | 'imageUrl' | 'categoryId' | 'currency' | 'oldPrice' | 'newPrice' | 'discountPct' | 'affiliateUrl' | 'ratingStars' | 'reviewCount' | 'affiliateClickCount' | 'source' | 'status' | 'detectedAt' | 'publishedAt' | 'externalPayload'> {
+): Pick<Deal, 'asin' | 'title' | 'imageUrl' | 'categoryId' | 'currency' | 'oldPrice' | 'newPrice' | 'discountPct' | 'ratingStars' | 'reviewCount' | 'affiliateClickCount' | 'source' | 'status' | 'detectedAt' | 'publishedAt' | 'externalPayload'> {
 	const asin = `B0${ String( index ).padStart( 8, '0' )}`;
 	const oldPrice = 40 + ( index % 35 ) + Math.floor( index / 10 );
 	const discountPct = 15 + ( index % 45 );
@@ -39,7 +37,6 @@ export function buildDemoDeal (
 		oldPrice,
 		newPrice,
 		discountPct,
-		affiliateUrl: `https://www.amazon.es/dp/${ asin }?tag=${ AFFILIATE_TAG }`,
 		ratingStars: Math.min( 5, 3.5 + ( index % 5 ) * 0.3 ),
 		reviewCount: 50 + index * 13,
 		affiliateClickCount: index % 7,
