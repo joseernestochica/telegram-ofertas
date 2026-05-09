@@ -53,6 +53,19 @@ export class UpsertDealDto {
 	source: DealSource;
 
 	@IsOptional()
+	@Type( () => Number )
+	@IsNumber()
+	@Min( 0 )
+	@Max( 5 )
+	ratingStars?: number;
+
+	@IsOptional()
+	@Type( () => Number )
+	@IsNumber()
+	@Min( 0 )
+	reviewCount?: number;
+
+	@IsOptional()
 	@IsEnum( DealStatus )
 	status?: DealStatus;
 

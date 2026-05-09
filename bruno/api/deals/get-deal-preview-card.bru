@@ -1,0 +1,19 @@
+meta {
+  name: Ganga Bot — GET vista previa HTML (navegador)
+  type: http
+  seq: 10
+}
+
+get {
+  url: {{baseUrl}}/api/deals/:dealId/preview-card
+  body: none
+  auth: none
+}
+
+params:query {
+  ~expired: 1
+}
+
+params:path {
+  dealId: 5354d27d-fcd9-4e8a-9073-e652ed3cbe86
+}

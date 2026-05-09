@@ -1,0 +1,15 @@
+meta {
+  name: Ganga Bot — GET tracking clic → redirect Amazon (público)
+  type: http
+  seq: 13
+}
+
+get {
+  url: {{baseUrl}}/api/track/deals/{{dealId}}
+  body: none
+  auth: none
+}
+
+settings {
+  follow_redirects: false
+}

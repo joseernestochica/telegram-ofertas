@@ -1,0 +1,15 @@
+meta {
+  name: Ganga Bot — PATCH marcar finalizado en Telegram (edit caption)
+  type: http
+  seq: 12
+}
+
+patch {
+  url: {{baseUrl}}/api/deals/{{dealId}}/channel-expired
+  body: none
+  auth: none
+}
+
+headers {
+  x-api-key: {{apiKey}}
+}

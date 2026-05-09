@@ -33,7 +33,22 @@
 | [Fase I](#fase-i--despliegue-hosting-y-ci)                 | Deploy en hosting barato + webhook productivo + backups                 | Bot corriendo 24/7                                      |
 | [Fase J](#fase-j--operación-y-mejoras)                     | Rutina diaria, A/B de copys, categorías con mejor conversión            | Iteración continua                                      |
 | [Fase K](#fase-k--limpieza-y-retención-de-datos-en-bd)     | Retención, expiración y purga de datos antiguos en `Deal` / `DealEvent` | BD acotada; jobs de housekeeping                       |
+| [Pendientes](#pendientes-próximas-fases)                   | Recordatorio: ratings Keepa → BD; refresco caption con clics en Telegram | Ver checklist antes de cerrar C/E/G                    |
 
+
+---
+
+## Pendientes (próximas fases)
+
+Registro explícito de lo que **ya está preparado en código** pero falta cerrar con **Keepa**, **Telegram** u operación:
+
+1. **Integración Keepa → `ratingStars` y `reviewCount`**  
+   Al conectar el fetcher (`DealIngestorService` / `upsert` desde Keepa), mapear la valoración al modelo del `Deal`: Keepa expone la nota en historial CSV en escala **0–50**; persistir como **`ratingStars` en 0–5** (**dividir entre 10** antes del `upsert`). Rellenar **`reviewCount`** cuando la API/CSV lo aporten (comprobar campos `stats` / `COUNT_REVIEWS` y limitaciones de actualización de Amazon/Keepa).
+
+2. **Contador de clics en el mensaje del canal**  
+   `affiliateClickCount` se incrementa en `GET /api/track/deals/:id` y se incluye en la plantilla al **construir** el caption; el mensaje publicado en Telegram **no se actualiza automáticamente** al subir el contador. Pendiente implementar al menos una de:
+   - **Refresco del caption** con `editMessageCaption` / `editMessageText` tras clics (con **debounce** o cola para no exceder límites de la Bot API), o  
+   - **Job programado (cron)** que re-renderice y edite la línea de clics en fichas aún relevantes (p. ej. publicadas en las últimas N horas/días).
 
 ---
 
@@ -205,6 +220,7 @@ Criterios de aceptación de un `Deal`:
 - Para cada candidato:
   - `upsertByAsin` en estado `PENDING`.
   - Persiste `DealEvent` tipo `detected`.
+- Mapeo de **valoración y reseñas** al `Deal`: ver [Pendientes (próximas fases)](#pendientes-próximas-fases) — Keepa 0–50 → `ratingStars` 0–5 (÷10), `reviewCount` desde CSV/API cuando aplique.
 - Devuelve estadísticas (insertados, ignorados por dedupe, errores).
 
 ### C.4 Scheduler 🤖
@@ -277,6 +293,8 @@ Ya existe como placeholder. Rellenar marcadores:
 ## Fase E — Publisher al canal + cola de publicación
 
 **Objetivo**: pasar `Deal` de `APPROVED` a `PUBLISHED` enviando al canal.
+
+> **Pendiente opcional:** refrescar en Telegram la línea «📊 X clics al enlace» cuando suba el contador (debounce o cron) — detalle en [Pendientes (próximas fases)](#pendientes-próximas-fases).
 
 ### E.1 `PublisherService` 🤖
 

@@ -23,7 +23,7 @@ export function distributeCounts ( total: number, bucketCount: number ): number[
 export function buildDemoDeal (
 	index: number,
 	category: Category,
-): Pick<Deal, 'asin' | 'title' | 'imageUrl' | 'categoryId' | 'currency' | 'oldPrice' | 'newPrice' | 'discountPct' | 'affiliateUrl' | 'source' | 'status' | 'detectedAt' | 'publishedAt' | 'externalPayload'> {
+): Pick<Deal, 'asin' | 'title' | 'imageUrl' | 'categoryId' | 'currency' | 'oldPrice' | 'newPrice' | 'discountPct' | 'affiliateUrl' | 'ratingStars' | 'reviewCount' | 'affiliateClickCount' | 'source' | 'status' | 'detectedAt' | 'publishedAt' | 'externalPayload'> {
 	const asin = `B0${ String( index ).padStart( 8, '0' )}`;
 	const oldPrice = 40 + ( index % 35 ) + Math.floor( index / 10 );
 	const discountPct = 15 + ( index % 45 );
@@ -40,6 +40,9 @@ export function buildDemoDeal (
 		newPrice,
 		discountPct,
 		affiliateUrl: `https://www.amazon.es/dp/${ asin }?tag=${ AFFILIATE_TAG }`,
+		ratingStars: Math.min( 5, 3.5 + ( index % 5 ) * 0.3 ),
+		reviewCount: 50 + index * 13,
+		affiliateClickCount: index % 7,
 		source: DealSource.MANUAL,
 		status: DealStatus.PENDING,
 		detectedAt,

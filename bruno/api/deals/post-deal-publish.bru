@@ -1,0 +1,15 @@
+meta {
+  name: Ganga Bot — POST publicar ficha al canal Telegram
+  type: http
+  seq: 11
+}
+
+post {
+  url: {{baseUrl}}/api/deals/{{dealId}}/publish
+  body: none
+  auth: none
+}
+
+headers {
+  x-api-key: {{apiKey}}
+}

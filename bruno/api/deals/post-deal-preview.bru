@@ -1,0 +1,21 @@
+meta {
+  name: Ganga Bot — POST preview ficha (HTML Telegram)
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{baseUrl}}/api/deals/{{dealId}}/preview
+  body: json
+  auth: none
+}
+
+headers {
+  x-api-key: {{apiKey}}
+}
+
+body:json {
+  {
+    "showExpiredBanner": false
+  }
+}

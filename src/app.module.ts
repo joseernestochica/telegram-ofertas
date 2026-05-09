@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AmazonModule } from './amazon/amazon.module';
 import { CommonModule } from './common/common.module';
 import { SeedModule } from './seed/seed.module';
 import { WebhookModule } from './webhook/webhook.module';
@@ -28,6 +29,7 @@ import { AppController } from './app.controller';
 			autoLoadEntities: true,
 			synchronize: true,
 		} ),
+		AmazonModule,
 		CommonModule,
 		CategoryModule,
 		DealModule,

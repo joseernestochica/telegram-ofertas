@@ -101,6 +101,8 @@ export class DealService {
 					newPrice: dto.newPrice,
 					discountPct: dto.discountPct,
 					affiliateUrl: dto.affiliateUrl,
+					ratingStars: dto.ratingStars ?? null,
+					reviewCount: dto.reviewCount ?? null,
 					source: dto.source,
 					status,
 					detectedAt,
@@ -124,6 +126,12 @@ export class DealService {
 			existing.newPrice = dto.newPrice;
 			existing.discountPct = dto.discountPct;
 			existing.affiliateUrl = dto.affiliateUrl;
+			if ( dto.ratingStars !== undefined ) {
+				existing.ratingStars = dto.ratingStars;
+			}
+			if ( dto.reviewCount !== undefined ) {
+				existing.reviewCount = dto.reviewCount;
+			}
 			existing.source = dto.source;
 			existing.status = status;
 			existing.detectedAt = detectedAt;
@@ -136,5 +144,25 @@ export class DealService {
 			}
 			this.handleErrorService.handleDBException( error );
 		}
+	}
+
+	/** Incrementa el contador de clics y devuelve la URL de afiliado destino (HTTP 302). */
+	async incrementAffiliateClickAndGetTargetUrl ( id: string ): Promise<string> {
+		const result = await this.dealRepository.increment(
+			{ id },
+			'affiliateClickCount',
+			1,
+		);
+		if ( !result.affected ) {
+			this.handleErrorService.handleNotFoundException( `Deal ${ id } no encontrado` );
+		}
+		const row = await this.dealRepository.findOne( {
+			where: { id },
+			select: [ 'affiliateUrl' ],
+		} );
+		if ( !row ) {
+			this.handleErrorService.handleNotFoundException( `Deal ${ id } no encontrado` );
+		}
+		return row.affiliateUrl.trim();
 	}
 }
