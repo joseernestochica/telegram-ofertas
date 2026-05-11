@@ -5,7 +5,11 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}/api/deals/{{dealId}}
+  url: {{baseUrl}}/api/deals/:dealId
   body: none
   auth: none
+}
+
+params:path {
+  dealId: 5354d27d-fcd9-4e8a-9073-e652ed3cbe86
 }

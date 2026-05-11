@@ -113,6 +113,20 @@ export class DealController {
 		return buildGetResponse( deal );
 	}
 
+	@Post( ':id/approve' )
+	@ApiOperation( {
+		summary:
+			'Pasar el deal a APPROVED (cola del cron de publicación). Idempotente si ya estaba aprobado.',
+	} )
+	@ApiHeader( { name: 'x-api-key', required: false, description: 'Opcional si usas Authorization Bearer' } )
+	@UseGuards( ApiKeyGuard )
+	async approve (
+		@Param( 'id', new ParseUUIDPipe( { version: '4' } ) ) id: string,
+	): Promise<GetResponse<Deal>> {
+		const deal = await this.dealService.markAsApproved( id );
+		return buildGetResponse( deal );
+	}
+
 	@Patch( ':id/channel-expired' )
 	@ApiOperation( {
 		summary:

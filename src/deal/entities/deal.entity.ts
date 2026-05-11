@@ -51,6 +51,12 @@ export class Deal {
 	@Column( { type: 'text', name: 'affiliate_url' } )
 	affiliateUrl: string;
 
+	/**
+	 * URL pública corta para Telegram (p. ej. amzlink.to/…). Si está vacío, se usa tracking o afiliado según env.
+	 */
+	@Column( { type: 'text', nullable: true, name: 'telegram_offer_url' } )
+	telegramOfferUrl: string | null;
+
 	/** Media en Amazon (p. ej. Keepa: valor/10 si llega como 0–50). Rango típico 0–5. */
 	@Column( { type: 'double precision', nullable: true, name: 'rating_stars' } )
 	ratingStars: number | null;

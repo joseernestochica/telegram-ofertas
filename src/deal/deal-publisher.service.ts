@@ -36,9 +36,14 @@ export class DealPublisherService {
 		try {
 			const deal = await this.dealService.findById( dealId );
 			const payload = this.dealFormatterService.formatDealCaption( deal );
-			const replyMarkup = this.sendMessageService.buildReplyMarkupFromRows(
-				payload.inlineKeyboard,
-			);
+			const replyExtras =
+				payload.inlineKeyboard.flat().length > 0
+					? {
+						reply_markup: this.sendMessageService.buildReplyMarkupFromRows(
+							payload.inlineKeyboard,
+						),
+					}
+					: {};
 
 			let sent: TelegramSendResult;
 			const photo = payload.photoUrl?.trim();
@@ -47,13 +52,13 @@ export class DealPublisherService {
 					channelId,
 					photo,
 					payload.captionHtml,
-					{ reply_markup: replyMarkup },
+					replyExtras,
 				);
 			} else {
 				sent = await this.sendMessageService.sendHtmlMessage(
 					channelId,
 					payload.captionHtml,
-					{ reply_markup: replyMarkup },
+					replyExtras,
 				);
 			}
 
@@ -102,23 +107,28 @@ export class DealPublisherService {
 			const payload = this.dealFormatterService.formatDealCaption( deal, {
 				showExpiredBanner: true,
 			} );
-			const replyMarkup = this.sendMessageService.buildReplyMarkupFromRows(
-				payload.inlineKeyboard,
-			);
+			const replyExtras =
+				payload.inlineKeyboard.flat().length > 0
+					? {
+						reply_markup: this.sendMessageService.buildReplyMarkupFromRows(
+							payload.inlineKeyboard,
+						),
+					}
+					: {};
 
 			if ( deal.telegramPublishedIsPhoto ) {
 				await this.sendMessageService.editMessageCaption(
 					deal.telegramPublishedChatId,
 					deal.telegramPublishedMessageId,
 					payload.captionHtml,
-					{ reply_markup: replyMarkup },
+					replyExtras,
 				);
 			} else {
 				await this.sendMessageService.editMessageText(
 					deal.telegramPublishedChatId,
 					deal.telegramPublishedMessageId,
 					payload.captionHtml,
-					{ reply_markup: replyMarkup },
+					replyExtras,
 				);
 			}
 

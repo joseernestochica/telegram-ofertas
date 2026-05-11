@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
 import { escapeHtmlAttr, escapeTelegramHtml } from '../common/utils/escape-telegram-html.util';
+import { renderRatingStarsUnicode } from '../common/utils/rating-stars-unicode.util';
 import {
 	formatIntegerEs,
 	formatMoneyEUR,
@@ -14,15 +15,6 @@ import { Deal } from './entities/deal.entity';
 export class DealPreviewCardService {
 
 	constructor ( private readonly dealFormatterService: DealFormatterService ) { }
-
-	private renderStarsHtml ( rating: number ): string {
-		const filled = Math.min( 5, Math.max( 0, Math.round( rating ) ) );
-		let out = '';
-		for ( let i = 1; i <= 5; i += 1 ) {
-			out += i <= filled ? '★' : '☆';
-		}
-		return out;
-	}
 
 	private formatRatingOneDecimal ( stars: number ): string {
 		const hasDecimal = stars % 1 !== 0;
@@ -130,7 +122,7 @@ export class DealPreviewCardService {
 			deal.reviewCount != null && deal.reviewCount >= 0;
 		if ( hasRating || hasReviews ) {
 			const starsStr = hasRating
-				? this.renderStarsHtml( deal.ratingStars! )
+				? renderRatingStarsUnicode( deal.ratingStars! )
 				: '☆☆☆☆☆';
 			const numStr = hasRating
 				? this.formatRatingOneDecimal( deal.ratingStars! )
@@ -180,7 +172,7 @@ export class DealPreviewCardService {
 		const actionsHtml = `<div class="actions">${ actionsParts.join( '\n' ) }</div>`;
 
 		const legalHtml = `<p class="legal">${ escapeTelegramHtml(
-			'Como Afiliado de Amazon obtengo ingresos por las compras adscritas.',
+			'En calidad de Afiliado de Amazon obtengo ingresos por las compras adscritas.',
 		) }</p>`;
 
 		const cardBody = `

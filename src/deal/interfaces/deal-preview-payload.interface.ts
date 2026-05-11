@@ -9,10 +9,10 @@ export interface DealPreviewPayload {
 	/** URL de afiliado destino (Amazon), persistida en BD. */
 	affiliateUrl: string;
 
-	/** URL usada en la ficha y botones (tracking `/api/track/deals/:id` si hay `APP_PUBLIC_URL`). */
+	/** URL usada en la ficha y botones (tracking, afiliado directo o corta según env / deal). */
 	trackingUrl: string;
 
-	/** `true` si los enlaces cuentan clics en el servidor (requiere URL pública correcta). */
+	/** `true` si el enlace publicado es el redirect `/api/track/deals/:id` (conteo de clics en servidor). */
 	trackingEnabled: boolean;
 
 	ratingStars: number | null;

@@ -66,6 +66,11 @@ export class UpsertDealDto {
 	@IsEnum( DealStatus )
 	status?: DealStatus;
 
+	/** URL corta para el canal (p. ej. https://amzlink.to/…); opcional. */
+	@IsOptional()
+	@IsString()
+	telegramOfferUrl?: string | null;
+
 	@IsOptional()
 	@Type( () => Date )
 	detectedAt?: Date;

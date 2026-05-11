@@ -1,11 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as fs from 'fs';
-import * as path from 'path';
 import { buildDealAffiliateTrackingUrl } from '../common/utils/deal-tracking-url.util';
 import { escapeTelegramHtml } from '../common/utils/escape-telegram-html.util';
 import {
-	formatIntegerEs,
 	formatMoneyEUR,
 	formatReviewCountEs,
 } from '../common/utils/format-money.util';
@@ -13,29 +10,23 @@ import { Deal } from './entities/deal.entity';
 import { DealPreviewPayload } from './interfaces/deal-preview-payload.interface';
 
 const LEGAL_NOTICE =
-	'Como Afiliado de Amazon obtengo ingresos por las compras adscritas.';
+	'En calidad de Afiliado de Amazon obtengo ingresos por las compras adscritas.';
+
+/** Quita un prefijo inicial tipo `[Demo 7]` del título mostrado (el valor en BD no cambia). */
+function stripBracketTitlePrefix ( title: string ): string {
+	return title.trim().replace( /^\[[^\]]+\]\s*/, '' );
+}
 
 @Injectable()
 export class DealFormatterService {
 
-	private templateCache: string | null = null;
-
 	constructor ( private readonly configService: ConfigService ) { }
-
-	private loadTemplate (): string {
-		if ( this.templateCache ) {
-			return this.templateCache;
-		}
-		const filePath = path.resolve( __dirname, '../../static/tpl/deal.html' );
-		this.templateCache = fs.readFileSync( filePath, 'utf8' );
-		return this.templateCache;
-	}
 
 	private escapeHref ( url: string ): string {
 		return url.replace( /&/g, '&amp;' );
 	}
 
-	private formatRatingStars ( stars: number ): string {
+	private formatRatingOneDecimal ( stars: number ): string {
 		const hasDecimal = stars % 1 !== 0;
 		return new Intl.NumberFormat( 'es-ES', {
 			minimumFractionDigits: hasDecimal ? 1 : 0,
@@ -43,33 +34,23 @@ export class DealFormatterService {
 		} ).format( stars );
 	}
 
+	/** Línea «⭐️ nota · valoraciones»; cadena vacía si no hay datos. */
 	private buildRatingLine ( deal: Deal ): string {
 		const hasStars = deal.ratingStars != null && !Number.isNaN( deal.ratingStars );
 		const hasReviews = deal.reviewCount != null && deal.reviewCount >= 0;
 		if ( !hasStars && !hasReviews ) {
 			return '';
 		}
-		const parts: string[] = [];
-		if ( hasStars ) {
-			parts.push(
-				`⭐ <b>${ escapeTelegramHtml( this.formatRatingStars( deal.ratingStars! ) ) }</b>/5`,
-			);
-		}
-		if ( hasReviews ) {
-			parts.push(
-				`${ escapeTelegramHtml( formatReviewCountEs( deal.reviewCount! ) ) } valoraciones`,
-			);
-		}
-		return `${ parts.join( ' · ' ) }\n\n`;
-	}
-
-	private categoryHashtagLine ( deal: Deal ): string {
-		const raw = deal.category?.hashtag?.trim();
-		if ( !raw ) {
-			return '';
-		}
-		const withHash = raw.startsWith( '#' ) ? raw : `#${ raw }`;
-		return `<b>${ escapeTelegramHtml( withHash ) }</b>\n\n`;
+		const note = hasStars
+			? escapeTelegramHtml( this.formatRatingOneDecimal( deal.ratingStars! ) )
+			: '—';
+		const revPart = hasReviews
+			? `${ escapeTelegramHtml( formatReviewCountEs( deal.reviewCount! ) ) } valoraciones`
+			: '';
+		const core = revPart
+			? `⭐️ <b>${ note }</b> · ${ revPart }`
+			: `⭐️ <b>${ note }</b>`;
+		return core;
 	}
 
 	formatDealCaption (
@@ -77,16 +58,15 @@ export class DealFormatterService {
 		options?: { showExpiredBanner?: boolean },
 	): DealPreviewPayload {
 		const showExpiredBanner = options?.showExpiredBanner === true;
-		const tpl = this.loadTemplate();
+		const pct = Math.round( deal.discountPct );
 
-		const categoryLine = this.categoryHashtagLine( deal );
+		const displayTitle = escapeTelegramHtml(
+			stripBracketTitlePrefix( deal.title ),
+		);
 
-		const discountLine = !showExpiredBanner
-			? `🔥 <b>-${ Math.round( deal.discountPct ) }%</b>\n\n`
-			: '';
-
-		const title = escapeTelegramHtml( deal.title.trim() );
-		const titleLine = `<b>${ title }</b>\n\n`;
+		const headlineBlock = showExpiredBanner
+			? `⚠️ <b>Oferta finalizada</b>\n\n<b>${ displayTitle }</b>`
+			: `<b>${ displayTitle } -${ pct }%</b>`;
 
 		const newPrice = formatMoneyEUR( deal.newPrice );
 		const oldPrice = formatMoneyEUR( deal.oldPrice );
@@ -94,59 +74,81 @@ export class DealFormatterService {
 			Math.round( Math.max( 0, deal.oldPrice - deal.newPrice ) * 100 ) / 100;
 		const savingsStr = formatMoneyEUR( savingsAmt );
 
-		const priceSection = !showExpiredBanner
-			? `💚 <b>${ newPrice } €</b> · <s>${ oldPrice } €</s>\n🏷 Ahorras <b>${ savingsStr } €</b>\n\n`
-			: `<s><b>${ newPrice } €</b></s> · <s>${ oldPrice } €</s>\n🏷 <b>Expirada</b>\n\n`;
+		const priceBlock = showExpiredBanner
+			? `💰 <s><b>${ newPrice } €</b></s>  <s>${ oldPrice } €</s>  · <b>Expirada</b>`
+			: `💰 <b>${ newPrice } €</b>  <s>${ oldPrice } €</s>  · Ahorras <b>${ savingsStr } €</b> ✂️`;
 
 		const ratingLine = this.buildRatingLine( deal );
+		const priceAndRating =
+			ratingLine === ''
+				? priceBlock
+				: `${ priceBlock }\n\n${ ratingLine }`;
 
 		const publicUrl = this.configService.get<string>( 'APP_PUBLIC_URL' )?.trim();
 		const affiliatePlain = deal.affiliateUrl.trim();
 		const trackingPlain = publicUrl
 			? buildDealAffiliateTrackingUrl( publicUrl, deal.id )
 			: affiliatePlain;
-		const linkHrefHtml = this.escapeHref( trackingPlain );
 
-		const ctaLabel = showExpiredBanner
-			? 'Ver producto en Amazon'
-			: 'Ver oferta en Amazon';
-		const ctaLine = `<a href="${ linkHrefHtml }">${ escapeTelegramHtml( ctaLabel ) }</a>\n\n`;
+		const shortOffer = deal.telegramOfferUrl?.trim();
+		const useAffiliateDirect =
+			this.configService.get<string>(
+				'TELEGRAM_PUBLISH_USE_AFFILIATE_URL',
+				'false',
+			) === 'true';
 
-		const expiredNotice = showExpiredBanner
-			? `⚠️ <b>Esta oferta ha expirado.</b> Puedes ver el producto en Amazon por si el precio ha bajado de nuevo o hay una oferta similar activa.\n\n`
-			: '';
+		let publishUrl: string;
+		if ( shortOffer ) {
+			publishUrl = shortOffer;
+		} else if ( useAffiliateDirect ) {
+			publishUrl = affiliatePlain;
+		} else {
+			publishUrl = trackingPlain;
+		}
+
+		const linkHref = this.escapeHref( publishUrl );
+		const linkVerb =
+			showExpiredBanner ? 'Ver producto en Amazon' : 'Ver oferta en Amazon';
+		/** 👉 icono de llamada a la acción del enlace. */
+		const linkBlock =
+			`👉 <a href="${ linkHref }">${ escapeTelegramHtml( linkVerb ) }</a>`;
+
+		/** Telegram HTML no admite tamaños de fuente; cursiva es lo más discreto admitido. */
+		const legalBlock = `<i>${ escapeTelegramHtml( LEGAL_NOTICE ) }</i>`;
+
+		const showDisclaimer =
+			this.configService.get<string>(
+				'TELEGRAM_AFFILIATE_DISCLAIMER',
+				'false',
+			) === 'true';
+
+		const captionParts = [
+			headlineBlock,
+			priceAndRating,
+			linkBlock,
+		];
+		if ( showDisclaimer ) {
+			captionParts.push( legalBlock );
+		}
+		let captionHtml = captionParts.join( '\n\n' );
+		captionHtml = captionHtml.replace( /\n{3,}/g, '\n\n' ).trim();
 
 		const clicks = Math.max( 0, deal.affiliateClickCount ?? 0 );
-		const metricsLine = `👁️ <b>${ escapeTelegramHtml( formatIntegerEs( clicks ) ) }</b> clics al enlace\n\n`;
-
-		let html = tpl
-			.replace( /\{\{categoryLine\}\}/g, categoryLine )
-			.replace( /\{\{discountLine\}\}/g, discountLine )
-			.replace( /\{\{titleLine\}\}/g, titleLine )
-			.replace( /\{\{priceSection\}\}/g, priceSection )
-			.replace( /\{\{ratingLine\}\}/g, ratingLine )
-			.replace( /\{\{metricsLine\}\}/g, metricsLine )
-			.replace( /\{\{ctaLine\}\}/g, ctaLine )
-			.replace( /\{\{expiredNotice\}\}/g, expiredNotice )
-			.replace( /\{\{legalNotice\}\}/g, LEGAL_NOTICE );
-
-		html = html.replace( /\n{3,}/g, '\n\n' ).trim();
 
 		const primaryLabel = showExpiredBanner
-			? 'Ver producto en Amazon'
-			: 'Ver oferta en Amazon';
+			? '👉 Ver producto en Amazon'
+			: '👉 Ver oferta en Amazon';
 
 		const inlineKeyboard: { text: string; url: string }[][] = [
 			[
 				{
 					text: primaryLabel,
-					url: trackingPlain,
+					url: publishUrl,
 				},
 			],
 		];
 		const webUrl = publicUrl?.replace( /\/+$/, '' );
 		if ( webUrl ) {
-			/** Secundario: URL pública del proyecto (`APP_PUBLIC_URL`), p. ej. landing gangabot.com — no Amazon. */
 			inlineKeyboard.push( [
 				{
 					text: 'Abrir en la web',
@@ -156,11 +158,12 @@ export class DealFormatterService {
 		}
 
 		return {
-			captionHtml: html,
+			captionHtml,
 			photoUrl: deal.imageUrl,
 			affiliateUrl: affiliatePlain,
-			trackingUrl: trackingPlain,
-			trackingEnabled: Boolean( publicUrl ),
+			trackingUrl: publishUrl,
+			trackingEnabled:
+				Boolean( publicUrl ) && publishUrl === trackingPlain,
 			ratingStars: deal.ratingStars,
 			reviewCount: deal.reviewCount,
 			affiliateClickCount: clicks,

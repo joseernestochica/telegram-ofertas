@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AmazonModule } from './amazon/amazon.module';
 import { CommonModule } from './common/common.module';
@@ -13,6 +14,7 @@ import { AppController } from './app.controller';
 @Module( {
 		imports: [
 		ConfigModule.forRoot( { isGlobal: true } ),
+		ScheduleModule.forRoot(),
 		TypeOrmModule.forRoot( {
 			ssl: process.env.STAGE === 'prod',
 			extra: {

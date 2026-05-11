@@ -1,6 +1,7 @@
+import { ConfigService } from '@nestjs/config';
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { MoreThanOrEqual, Repository } from 'typeorm';
 import { GetResponse } from '../common/interfaces/get-response.interface';
 import { AmazonService } from '../amazon/amazon.service';
 import { HandleErrorService } from '../common/services/handle-error.service';
@@ -10,6 +11,7 @@ import { UpsertDealDto } from './dto/upsert-deal.dto';
 import { DealEvent } from './entities/deal-event.entity';
 import { Deal } from './entities/deal.entity';
 import { DealEventType, DealStatus } from './entities/deal.enums';
+import { startOfUtcDay } from './utils/publish-day.util';
 
 @Injectable()
 export class DealService {
@@ -20,6 +22,7 @@ export class DealService {
 		@InjectRepository( DealEvent )
 		private readonly dealEventRepository: Repository<DealEvent>,
 		private readonly amazonService: AmazonService,
+		private readonly configService: ConfigService,
 		private readonly handleErrorService: HandleErrorService,
 	) { }
 
@@ -89,7 +92,10 @@ export class DealService {
 			const existing = await this.dealRepository.findOne( { where: { asin: dto.asin } } );
 			const now = new Date();
 			const currency = dto.currency ?? 'EUR';
-			const status = dto.status ?? DealStatus.PENDING;
+			const autoApprove =
+				this.configService.get<string>( 'DEAL_AUTO_APPROVE', 'false' ) === 'true';
+			const status =
+				dto.status ?? ( autoApprove ? DealStatus.APPROVED : DealStatus.PENDING );
 			const detectedAt = dto.detectedAt ?? now;
 			const affiliateUrl = this.amazonService.buildAffiliateUrl( dto.asin );
 
@@ -104,6 +110,7 @@ export class DealService {
 					newPrice: dto.newPrice,
 					discountPct: dto.discountPct,
 					affiliateUrl,
+					telegramOfferUrl: dto.telegramOfferUrl?.trim() || null,
 					ratingStars: dto.ratingStars ?? null,
 					reviewCount: dto.reviewCount ?? null,
 					source: dto.source,
@@ -129,6 +136,10 @@ export class DealService {
 			existing.newPrice = dto.newPrice;
 			existing.discountPct = dto.discountPct;
 			existing.affiliateUrl = affiliateUrl;
+			if ( dto.telegramOfferUrl !== undefined ) {
+				const t = dto.telegramOfferUrl?.trim();
+				existing.telegramOfferUrl = t ? t : null;
+			}
 			if ( dto.ratingStars !== undefined ) {
 				existing.ratingStars = dto.ratingStars;
 			}
@@ -167,5 +178,52 @@ export class DealService {
 			this.handleErrorService.handleNotFoundException( `Deal ${ id } no encontrado` );
 		}
 		return row.affiliateUrl.trim();
+	}
+
+	/** Pasa el deal a `APPROVED` (cola del cron de publicación). Idempotente si ya está aprobado. */
+	async markAsApproved ( id: string ): Promise<Deal> {
+		const deal = await this.dealRepository.findOne( { where: { id } } );
+		if ( !deal ) {
+			this.handleErrorService.handleNotFoundException( `Deal ${ id } no encontrado` );
+		}
+		if (
+			deal.status === DealStatus.PUBLISHED
+			|| deal.status === DealStatus.SKIPPED
+			|| deal.status === DealStatus.EXPIRED
+		) {
+			this.handleErrorService.handleBadRequestException(
+				`El deal ${ id } no se puede aprobar en estado ${ deal.status }`,
+			);
+		}
+		if ( deal.status === DealStatus.APPROVED ) {
+			return this.findById( id );
+		}
+		deal.status = DealStatus.APPROVED;
+		await this.dealRepository.save( deal );
+		await this.dealEventRepository.insert( {
+			dealId: id,
+			type: DealEventType.APPROVED,
+			metadata: null,
+		} );
+		return this.findById( id );
+	}
+
+	/** Siguiente candidato a publicar por el cron (FIFO por fecha de detección). */
+	async findOldestApprovedDeal (): Promise<Deal | null> {
+		return this.dealRepository.findOne( {
+			where: { status: DealStatus.APPROVED },
+			order: { detectedAt: 'ASC' },
+		} );
+	}
+
+	/** Eventos `published` desde el inicio del día UTC (tope diario del cron). */
+	async countPublishedEventsToday (): Promise<number> {
+		const since = startOfUtcDay();
+		return this.dealEventRepository.count( {
+			where: {
+				type: DealEventType.PUBLISHED,
+				createdAt: MoreThanOrEqual( since ),
+			},
+		} );
 	}
 }

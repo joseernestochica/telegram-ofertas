@@ -1,11 +1,11 @@
 meta {
-  name: Ganga Bot — POST publicar ficha al canal Telegram
+  name: Ganga Bot — POST aprobar deal (cola cron)
   type: http
-  seq: 11
+  seq: 12
 }
 
 post {
-  url: {{baseUrl}}/api/deals/:dealId/publish
+  url: {{baseUrl}}/api/deals/:dealId/approve
   body: none
   auth: none
 }
