@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { formatPercentAsEmojiKeycaps } from '../common/utils/format-percent-emoji-digits.util';
 import { buildDealAffiliateTrackingUrl } from '../common/utils/deal-tracking-url.util';
 import { escapeTelegramHtml } from '../common/utils/escape-telegram-html.util';
 import {
@@ -64,9 +65,11 @@ export class DealFormatterService {
 			stripBracketTitlePrefix( deal.title ),
 		);
 
+		const pctEmoji = formatPercentAsEmojiKeycaps( pct );
+
 		const headlineBlock = showExpiredBanner
 			? `⚠️ <b>Oferta finalizada</b>\n\n<b>${ displayTitle }</b>`
-			: `<b>${ displayTitle } -${ pct }%</b>`;
+			: `<b>${ displayTitle }</b> -${ pctEmoji }`;
 
 		const newPrice = formatMoneyEUR( deal.newPrice );
 		const oldPrice = formatMoneyEUR( deal.oldPrice );
